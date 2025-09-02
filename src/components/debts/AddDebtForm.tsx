@@ -39,6 +39,7 @@ const debtFormSchema = z.object({
   current_balance: z.coerce.number().min(0.01, "Balance must be greater than 0."),
   severity: z.enum(["Low", "Medium", "High"]).optional(),
   notes: z.string().optional(),
+  interest_rate: z.coerce.number().min(0).optional(), // New field for interest rate
 });
 
 type DebtFormValues = z.infer<typeof debtFormSchema>;
@@ -56,6 +57,7 @@ export const AddDebtForm = () => {
       name: "",
       current_balance: 0,
       notes: "",
+      interest_rate: undefined, // Initialize new field
     },
   });
 
@@ -72,6 +74,7 @@ export const AddDebtForm = () => {
         user_id: user.id,
         original_amount: data.current_balance, // Set original amount to current balance on creation
         status: 'active',
+        interest_rate: data.interest_rate || null, // Include interest rate, default to null if not provided
       },
     ]);
 
@@ -125,6 +128,19 @@ export const AddDebtForm = () => {
                   <FormLabel>Current Balance</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="1500.00" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="interest_rate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Interest Rate (%)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 5.99" step="0.01" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
