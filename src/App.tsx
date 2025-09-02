@@ -50,17 +50,22 @@ const AppRoutes = () => {
   return (
     <Routes>
       {session ? (
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="paychecks" element={<PaychecksPage />} />
-          <Route path="budgets" element={<BudgetsPage />} />
-          <Route path="transactions" element={<TransactionsPage />} />
-          <Route path="payment-plans" element={<PaymentPlansPage />} />
-          <Route path="payment-plans/:planId" element={<PaymentPlanDetailPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
+        <>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="paychecks" element={<PaychecksPage />} />
+            <Route path="budgets" element={<BudgetsPage />} />
+            <Route path="transactions" element={<TransactionsPage />} />
+            <Route path="payment-plans" element={<PaymentPlansPage />} />
+            <Route path="payment-plans/:planId" element={<PaymentPlanDetailPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+          {/* Redirect authenticated users away from login/signup */}
+          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/create-profile" element={<Navigate to="/dashboard" replace />} />
+        </>
       ) : (
         <>
           <Route path="/login" element={<Login />} />
