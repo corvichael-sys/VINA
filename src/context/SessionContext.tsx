@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Define the shape of a user profile
 type Profile = {
   username: string;
+  avatar_url: string | null;
 };
 
 // Define the shape of the context value
@@ -29,7 +30,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
   const fetchProfile = async (userId: string) => {
     const { data: profileData, error: profileError } = await supabase
       .from('users_profile')
-      .select('username')
+      .select('username, avatar_url')
       .eq('id', userId)
       .single();
 
@@ -96,7 +97,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
 // Create a custom hook to use the session context
 export const useSession = () => {
   const context = useContext(SessionContext);
-  if (context === null) { // Changed from undefined to null to correctly narrow type
+  if (context === null) {
     throw new Error('useSession must be used within a SessionContextProvider');
   }
   return context;
