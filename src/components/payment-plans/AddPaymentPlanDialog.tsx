@@ -42,7 +42,11 @@ const fetchDebts = async (userId: string) => {
   return data as Pick<Debt, "id" | "name">[];
 };
 
-export const AddPaymentPlanDialog = () => {
+interface AddPaymentPlanDialogProps {
+  onSuccess?: () => void;
+}
+
+export const AddPaymentPlanDialog = ({ onSuccess }: AddPaymentPlanDialogProps) => {
   const { user } = useSession();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -112,6 +116,7 @@ export const AddPaymentPlanDialog = () => {
       queryClient.invalidateQueries({ queryKey: ["plan_items"] });
       form.reset();
       setOpen(false);
+      onSuccess?.(); // Call onSuccess callback
     }
   };
 

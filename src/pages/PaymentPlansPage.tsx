@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/context/SessionContext";
 import { PaymentPlan } from "@/types/paymentPlan";
@@ -21,6 +21,7 @@ const fetchAllPlanItems = async (userId: string) => {
 
 const PaymentPlansPage = () => {
   const { user } = useSession();
+  const queryClient = useQueryClient(); // Initialize useQueryClient
 
   const { data: plans, isLoading: arePlansLoading, isError: arePlansError } = useQuery({
     queryKey: ["payment_plans", user?.id],
@@ -33,6 +34,12 @@ const PaymentPlansPage = () => {
     queryFn: () => fetchAllPlanItems(user!.id),
     enabled: !!user,
   });
+
+  // Function to invalidate queries after a successful operation (add/delete)
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["payment_plans"] });
+    queryClient.invalidateQueries({ queryKey: ["plan_items"] });
+  };
 
   const renderContent = () => {
     if (arePlansLoading || areItemsLoading) {
@@ -56,7 +63,7 @@ const PaymentPlansPage = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {plans.map(plan => {
           const planItems = items?.filter(item => item.plan_id === plan.id) || [];
-          return <PaymentPlanCard key={plan.id} plan={plan} items={planItems} />;
+          return <PaymentPlanCard key={plan.id} plan={plan} items={planItems} onSuccess={handleSuccess} />;
         })}
       </div>
     );
@@ -66,7 +73,7 @@ const PaymentPlansPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold md:text-2xl">Payment Plans</h1>
-        <AddPaymentPlanDialog />
+        <AddPaymentPlanDialog onSuccess={handleSuccess} /> {/* Pass onSuccess to AddPaymentPlanDialog */}
       </div>
       {renderContent()}
     </div>
