@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useSession } from "@/context/SessionContext";
-import { useMutation } from "@tanstack/react-query"; // Removed useQueryClient
+import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,6 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export const UpdateProfileForm = () => {
   const { profile, user, refreshProfile } = useSession();
-  // const queryClient = useQueryClient(); // Removed this line
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
 
@@ -70,7 +69,7 @@ export const UpdateProfileForm = () => {
   };
 
   const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
+    try { // Removed the extra '{' here
       setUploading(true);
       if (!event.target.files || event.target.files.length === 0) {
         throw new Error('You must select an image to upload.');
@@ -139,7 +138,10 @@ export const UpdateProfileForm = () => {
       <CardContent className="space-y-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={profile?.avatar_url ?? undefined} alt="User avatar" />
+            <AvatarImage 
+              src={profile?.avatar_url ? `${profile.avatar_url}?t=${new Date().getTime()}` : undefined} 
+              alt="User avatar" 
+            />
             <AvatarFallback>
               <User className="h-10 w-10" />
             </AvatarFallback>
