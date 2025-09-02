@@ -30,11 +30,7 @@ export const DebtSummary = ({ debts, isLoading, totalDebt, debtChangePercentage,
     );
   }
 
-  if (!debts || debts.length === 0) {
-    return null;
-  }
-
-  const activeDebts = debts.filter(d => d.status === 'active').length;
+  const activeDebts = (debts || []).filter(d => d.status === 'active').length;
 
   return (
     <div className="grid gap-4 md:grid-cols-3 mb-6">
