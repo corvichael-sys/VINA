@@ -1,27 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // Removed AvatarImage import
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "lucide-react";
+import { AddDebtForm } from "@/components/debts/AddDebtForm";
+import { DebtList } from "@/components/debts/DebtList";
 
 const Dashboard = () => {
   const { profile, logout } = useSession();
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
-      <header className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="flex justify-between items-center p-4 md:p-6 border-b">
         <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12">
-            {/* Removed AvatarImage component */}
+          <Avatar className="h-10 w-10">
             <AvatarFallback><User /></AvatarFallback>
           </Avatar>
-          <h1 className="text-2xl md:text-3xl font-bold">
+          <h1 className="text-xl md:text-2xl font-bold">
             Welcome, {profile?.username || 'User'}
           </h1>
         </div>
         <Button onClick={logout} variant="outline">Sign Out</Button>
       </header>
-      <main>
-        <p className="text-muted-foreground">Your dashboard is coming soon. This is where you'll see an overview of your debts, budget, and progress.</p>
+      <main className="p-4 md:p-6">
+        <div className="flex justify-end mb-6">
+          <AddDebtForm />
+        </div>
+        <DebtList />
       </main>
     </div>
   );
