@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { PiggyBank, Wallet, PieChart, Calendar, ListChecks, Settings } from "lucide-react";
+import { PiggyBank } from "lucide-react";
 import {
   SidebarProvider,
   Sidebar,
@@ -14,14 +14,8 @@ import {
   SidebarInset,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-
-const mainNavItems = [
-  { href: "/dashboard", label: "Dashboard", icon: PiggyBank },
-  { href: "/paychecks", label: "Paychecks", icon: Wallet },
-  { href: "/budgets", label: "Budgets", icon: PieChart },
-  { href: "/transactions", label: "Transactions", icon: ListChecks },
-  { href: "/payment-plans", label: "Payment Plans", icon: Calendar },
-];
+import { MobileNav } from "./MobileNav";
+import { mainNavItems, settingsNavItem, NavItem } from "@/config/nav"; // Import NavItem type
 
 const AppSidebar = () => {
   const location = useLocation();
@@ -37,7 +31,7 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {mainNavItems.map((item) => (
+          {mainNavItems.map((item: NavItem) => ( // Explicitly type item as NavItem
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 onClick={() => navigate(item.href)}
@@ -55,12 +49,12 @@ const AppSidebar = () => {
         <SidebarMenu>
             <SidebarMenuItem>
                 <SidebarMenuButton
-                    onClick={() => navigate('/settings')}
-                    isActive={location.pathname.startsWith('/settings')}
-                    tooltip="Settings"
+                    onClick={() => navigate(settingsNavItem.href)}
+                    isActive={location.pathname.startsWith(settingsNavItem.href)}
+                    tooltip={settingsNavItem.label}
                 >
-                    <Settings className="size-4" />
-                    <span>Settings</span>
+                    <settingsNavItem.icon className="size-4" />
+                    <span>{settingsNavItem.label}</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>
@@ -77,7 +71,9 @@ export const AppLayout = () => {
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 sticky top-0 z-30">
-          <SidebarTrigger />
+          <div className="md:hidden">
+            <SidebarTrigger />
+          </div>
           <div className="w-full flex-1">
             {/* Breadcrumbs or other header content can go here */}
           </div>
@@ -86,6 +82,7 @@ export const AppLayout = () => {
             <Button onClick={logout} variant="outline" size="sm">Sign Out</Button>
           </div>
         </header>
+        <MobileNav />
         <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
           <Outlet />
         </main>

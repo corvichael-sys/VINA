@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+// Removed Sheet and SheetContent as they are no longer used in this component
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
@@ -180,7 +180,7 @@ const Sidebar = React.forwardRef<
     },
     ref,
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+    const { state } = useSidebar();
 
     if (collapsible === "none") {
       return (
@@ -197,30 +197,8 @@ const Sidebar = React.forwardRef<
       );
     }
 
-    if (isMobile) {
-      return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-          <SheetContent
-            data-sidebar="sidebar"
-            data-mobile="true"
-            // Explicitly set side to "top" for mobile dropdown
-            side="top"
-            className={cn(
-              "w-full h-auto top-[3.5rem] rounded-b-lg border-b", // Adjusted for top-down menu
-              "bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden", // p-0 to remove default padding
-              className,
-            )}
-            // Removed the style prop as it's not needed for a top sheet
-          >
-            {/* The content inside the sheet needs its own padding */}
-            <div className="flex h-full w-full flex-col p-4">
-              {children}
-            </div>
-          </SheetContent>
-        </Sheet>
-      );
-    }
-
+    // Mobile logic has been moved to MobileNav component
+    // This Sidebar component is now primarily for desktop
     return (
       <div
         ref={ref}
