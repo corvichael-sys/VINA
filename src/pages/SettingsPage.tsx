@@ -6,9 +6,11 @@ import { UpdateProfileForm } from "@/components/settings/UpdateProfileForm";
 import { UpdatePasswordForm } from "@/components/settings/UpdatePasswordForm";
 import { ThemeSwitcher } from "@/components/settings/ThemeSwitcher";
 import { AccentColorSwitcher } from "@/components/settings/AccentColorSwitcher";
+import { ResetAccountDialog } from "@/components/settings/ResetAccountDialog";
 
 const SettingsPage = () => {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isResetDialogOpen, setResetDialogOpen] = useState(false);
 
   return (
     <>
@@ -30,7 +32,7 @@ const SettingsPage = () => {
               These actions are permanent and cannot be undone. Please proceed with caution.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div>
                 <h3 className="font-semibold">Delete All Transactions</h3>
@@ -42,6 +44,17 @@ const SettingsPage = () => {
                 Delete History
               </Button>
             </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <h3 className="font-semibold">Reset Account</h3>
+                <p className="text-sm text-muted-foreground">
+                  Permanently delete all your data and reset your account.
+                </p>
+              </div>
+              <Button variant="destructive" onClick={() => setResetDialogOpen(true)}>
+                Reset Account
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -49,6 +62,10 @@ const SettingsPage = () => {
       <DeleteAllTransactionsDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
+      />
+      <ResetAccountDialog
+        isOpen={isResetDialogOpen}
+        onOpenChange={setResetDialogOpen}
       />
     </>
   );
