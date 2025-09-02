@@ -95,6 +95,15 @@
 
   .theme-violet { --primary: 262.1 83.3% 57.8%; --primary-foreground: 210 40% 98%; --ring: 262.1 83.3% 57.8%; }
   .dark .theme-violet { --primary: 262.1 73.3% 47.8%; --primary-foreground: 210 40% 98%; --ring: 262.1 73.3% 47.8%; }
+
+  .theme-white { --primary: 0 0% 98%; --primary-foreground: 222.2 47.4% 11.2%; --ring: 0 0% 98%; }
+  .dark .theme-white { --primary: 0 0% 98%; --primary-foreground: 222.2 47.4% 11.2%; --ring: 0 0% 98%; }
+
+  .theme-brown { --primary: 25 40% 40%; --primary-foreground: 210 40% 98%; --ring: 25 40% 40%; }
+  .dark .theme-brown { --primary: 25 30% 30%; --primary-foreground: 210 40% 98%; --ring: 25 30% 30%; }
+
+  .theme-black { --primary: 0 0% 10%; --primary-foreground: 210 40% 98%; --ring: 0 0% 10%; }
+  .dark .theme-black { --primary: 0 0% 90%; --primary-foreground: 222.2 47.4% 11.2%; --ring: 0 0% 90%; }
 }
 
 @layer base {

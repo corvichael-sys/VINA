@@ -100,5 +100,8 @@ export default {
     'theme-green',
     'theme-indigo',
     'theme-violet',
+    'theme-white', // Added to safelist
+    'theme-brown', // Added to safelist
+    'theme-black', // Added to safelist
   ],
 } satisfies Config;

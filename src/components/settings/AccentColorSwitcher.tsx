@@ -13,6 +13,9 @@ const colors = [
   { name: 'green', hex: '#16a34a' },
   { name: 'indigo', hex: '#4f46e5' },
   { name: 'violet', hex: '#8b5cf6' },
+  { name: 'white', hex: '#f8f8f8' }, // Added white
+  { name: 'brown', hex: '#8B4513' }, // Added brown
+  { name: 'black', hex: '#1a1a1a' }, // Added black
 ] as const;
 
 type AccentColor = typeof colors[number]['name'];

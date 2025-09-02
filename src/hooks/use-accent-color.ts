@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-type AccentColor = 'blue' | 'red' | 'orange' | 'yellow' | 'green' | 'indigo' | 'violet';
+type AccentColor = 'blue' | 'red' | 'orange' | 'yellow' | 'green' | 'indigo' | 'violet' | 'white' | 'brown' | 'black';
 
 const ACCENT_COLOR_KEY = 'accent-color';
 const ACCENT_CLASS_PREFIX = 'theme-';
