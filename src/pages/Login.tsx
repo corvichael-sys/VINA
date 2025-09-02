@@ -9,6 +9,7 @@ import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
+import { PiggyBank } from "lucide-react"; // Importing the PiggyBank icon
 
 const loginFormSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -47,8 +48,8 @@ const Login = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          {/* Replaced LogIn icon with a text-based logo */}
-          <div className="text-primary text-4xl font-bold mb-4">VINA</div>
+          {/* Replaced text logo with PiggyBank icon */}
+          <PiggyBank className="mx-auto h-10 w-10 text-primary mb-4" />
           <CardTitle>Welcome to VINA</CardTitle>
           <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
