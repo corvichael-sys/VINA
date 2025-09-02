@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge, badgeVariants, BadgeProps } from "@/components/ui/badge"; // Import badgeVariants and BadgeProps
+import { Badge, badgeVariants } from "@/components/ui/badge"; // Import badgeVariants
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";

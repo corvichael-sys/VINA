@@ -5,7 +5,7 @@ import * as React from "react";
 import { type ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000; // This value is very high, consider reducing it for actual use.
+// const TOAST_REMOVE_DELAY = 1000000; // This value is very high, consider reducing it for actual use.
 
 type ToasterToast = ToastProps & {
   id: string;

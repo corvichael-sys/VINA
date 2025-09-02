@@ -96,7 +96,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
 // Create a custom hook to use the session context
 export const useSession = () => {
   const context = useContext(SessionContext);
-  if (context === undefined) {
+  if (context === null) { // Changed from undefined to null to correctly narrow type
     throw new Error('useSession must be used within a SessionContextProvider');
   }
   return context;
