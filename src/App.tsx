@@ -1,69 +1,69 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useSession } from "./context/SessionContext";
+import { SessionContextProvider, useSession } from "./context/SessionContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
 
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
-import CreateProfile from "./pages/CreateProfile";
-import { MadeWithDyad } from "./components/made-with-dyad";
 import { AppLayout } from "./components/layout/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
 import PaychecksPage from "./pages/PaychecksPage";
 import BudgetsPage from "./pages/BudgetsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import PaymentPlansPage from "./pages/PaymentPlansPage";
+import PaymentPlanDetailPage from "./pages/PaymentPlanDetailPage"; // Import the new page
 import SettingsPage from "./pages/SettingsPage";
+import Login from "./pages/Login";
+import CreateProfile from "./pages/CreateProfile";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SessionContextProvider>
+        <BrowserRouter>
+          <AppRoutes />
+          <Toaster />
+        </BrowserRouter>
+      </SessionContextProvider>
+    </QueryClientProvider>
+  );
+}
 
 const AppRoutes = () => {
   const { session, isLoading } = useSession();
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-foreground">Loading...</p>
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
       </div>
     );
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {!session ? (
-          <>
-            <Route path="/create-profile" element={<CreateProfile />} />
-            <Route path="*" element={<Login />} />
-          </>
-        ) : (
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/paychecks" element={<PaychecksPage />} />
-            <Route path="/budgets" element={<BudgetsPage />} />
-            <Route path="/transactions" element={<TransactionsPage />} />
-            <Route path="/payment-plans" element={<PaymentPlansPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        )}
-      </Routes>
-      <MadeWithDyad />
-    </BrowserRouter>
+    <Routes>
+      {session ? (
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="paychecks" element={<PaychecksPage />} />
+          <Route path="budgets" element={<BudgetsPage />} />
+          <Route path="transactions" element={<TransactionsPage />} />
+          <Route path="payment-plans" element={<PaymentPlansPage />} />
+          <Route path="payment-plans/:planId" element={<PaymentPlanDetailPage />} /> {/* Add new route */}
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      ) : (
+        <>
+          <Route path="/login" element={<Login />} />
+          <Route path="/create-profile" element={<CreateProfile />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </>
+      )}
+    </Routes>
   );
 };
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AppRoutes />
-    </TooltipProvider>
-  </QueryClientProvider>
-);
 
 export default App;
