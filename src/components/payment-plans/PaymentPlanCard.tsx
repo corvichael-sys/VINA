@@ -50,7 +50,7 @@ export const PaymentPlanCard = ({ plan, items }: PaymentPlanCardProps) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DeletePaymentPlanDialog plan={plan}>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}> {/* Prevent dropdown from closing immediately */}
+              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); e.stopPropagation(); }}> {/* Prevent dropdown from closing immediately and stop propagation */}
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
