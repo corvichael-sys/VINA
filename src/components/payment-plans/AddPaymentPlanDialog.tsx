@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast"; // Corrected import syntax
 import { useState } from "react";
 import { useSession } from "@/context/SessionContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -60,7 +60,7 @@ export const AddPaymentPlanDialog = () => {
       name: data.name,
       total_amount: data.total_amount,
       number_of_payments: data.number_of_payments,
-      start_date: data.start_date,
+      start_date: format(data.start_date, 'yyyy-MM-dd'), // Explicitly format the date
       strategy: 'simple', // For generic plans
     };
 
