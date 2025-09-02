@@ -12,13 +12,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 
 const profileFormSchema = z.object({
+  email: z.string().email("Please enter a valid email address."),
   username: z.string().min(3, "Username must be at least 3 characters.").max(20, "Username must be 20 characters or less.").refine(s => !s.includes('@'), "Username cannot contain '@' symbol."),
-  pin: z.string().min(4, "PIN must be 4-6 digits.").max(6, "PIN must be 4-6 digits.").regex(/^\d+$/, "PIN must only contain digits."),
-  pinConfirm: z.string(),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+  passwordConfirm: z.string(),
   avatar: z.instanceof(FileList).optional(),
-}).refine(data => data.pin === data.pinConfirm, {
-  message: "PINs do not match.",
-  path: ["pinConfirm"],
+}).refine(data => data.password === data.passwordConfirm, {
+  message: "Passwords do not match.",
+  path: ["passwordConfirm"],
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -31,9 +32,10 @@ const CreateProfile = () => {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
+      email: "",
       username: "",
-      pin: "",
-      pinConfirm: "",
+      password: "",
+      passwordConfirm: "",
     },
   });
 
@@ -41,15 +43,13 @@ const CreateProfile = () => {
     setIsSubmitting(true);
     let avatar_path_in_storage: string | undefined = undefined;
 
-    // 1. Sign up the new user using the PIN as the password
-    // Initial signup will create the auth.users entry and trigger handle_new_user to create users_profile
+    // 1. Sign up the new user with email and password
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: `${data.username}@debt-tracker.local`, // Create a dummy email
-      password: data.pin,
+      email: data.email,
+      password: data.password,
       options: {
         data: {
           username: data.username,
-          // avatar_url will be updated after upload
         },
       },
     });
@@ -62,13 +62,12 @@ const CreateProfile = () => {
     
     const userId = signUpData.user?.id;
 
-    // 2. Handle avatar upload if one is provided, now that the user is signed up
+    // 2. Handle avatar upload if one is provided
     if (data.avatar && data.avatar.length > 0 && userId) {
       const file = data.avatar[0];
       const fileExt = file.name.split('.').pop();
-      // Store avatar in a user-specific folder within the bucket
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`; // User-specific path
+      const filePath = `${userId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -95,14 +94,8 @@ const CreateProfile = () => {
     }
 
     if (signUpData.user) {
-        // Store profile in local storage for the lock screen to find
-        const profiles = JSON.parse(localStorage.getItem('profiles') || '[]');
-        profiles.push({ username: data.username, avatar_url: avatar_path_in_storage }); // Store the path, not the public URL
-        localStorage.setItem('profiles', JSON.stringify(profiles));
-        localStorage.setItem('lastUsername', data.username);
-
-        toast({ title: "Profile Created!", description: "You can now log in with your new PIN." });
-        navigate('/');
+        toast({ title: "Profile Created!", description: "Please check your email to verify your account. You can now log in." });
+        navigate('/'); // Navigate to login page
     }
   };
 
@@ -119,6 +112,19 @@ const CreateProfile = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="you@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="username"
                 render={({ field }) => (
                   <FormItem>
@@ -132,12 +138,12 @@ const CreateProfile = () => {
               />
               <FormField
                 control={form.control}
-                name="pin"
+                name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>PIN (4-6 digits)</FormLabel>
+                    <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••" {...field} />
+                      <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -145,12 +151,12 @@ const CreateProfile = () => {
               />
               <FormField
                 control={form.control}
-                name="pinConfirm"
+                name="passwordConfirm"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm PIN</FormLabel>
+                    <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••" {...field} />
+                      <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -176,7 +182,7 @@ const CreateProfile = () => {
           </Form>
           <div className="mt-4 text-center">
             <Button asChild variant="link" className="text-muted-foreground">
-              <Link to="/">Back to Lock Screen</Link>
+              <Link to="/">Already have an account? Sign In</Link>
             </Button>
           </div>
         </CardContent>

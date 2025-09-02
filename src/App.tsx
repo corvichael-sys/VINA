@@ -7,7 +7,7 @@ import { SessionContextProvider, useSession } from "./context/SessionContext";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import LockScreen from "./pages/LockScreen";
+import Login from "./pages/Login";
 import CreateProfile from "./pages/CreateProfile";
 import Dashboard from "./pages/Dashboard";
 import { MadeWithDyad } from "./components/made-with-dyad";
@@ -31,7 +31,7 @@ const AppRoutes = () => {
         {!session ? (
           <>
             <Route path="/create-profile" element={<CreateProfile />} />
-            <Route path="*" element={<LockScreen />} />
+            <Route path="*" element={<Login />} />
           </>
         ) : (
           <>
