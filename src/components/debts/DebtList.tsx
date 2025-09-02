@@ -8,25 +8,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge, badgeVariants } from "@/components/ui/badge"; // Import badgeVariants
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useState } from "react";
-import { MoreHorizontal } from "lucide-react";
-import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
 import { EditDebtDialog } from "./EditDebtDialog";
 import { DeleteDebtDialog } from "./DeleteDebtDialog";
-import { VariantProps } from "class-variance-authority"; // Import VariantProps
+import { VariantProps } from "class-variance-authority";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { DebtActionsMenu } from "./DebtActionsMenu";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-US", {
@@ -35,7 +26,6 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Explicitly type the return value to ensure correct variant inference
 const getSeverityBadgeProps = (severity: Debt['severity']): { variant: VariantProps<typeof badgeVariants>['variant'], className: string } => {
   switch (severity) {
     case 'High':
@@ -75,41 +65,37 @@ export const DebtList = ({ debts, isLoading, isError }: DebtListProps) => {
   const markDebtStatusMutation = useMutation({
     mutationFn: async ({ debt, newStatus }: { debt: Debt; newStatus: 'paid' | 'active' }) => {
       if (newStatus === 'paid') {
-        // Mark as paid: set status to 'paid' and current_balance to 0
         const { error: updateError } = await supabase
           .from('debts')
           .update({ status: 'paid', current_balance: 0 })
           .eq('id', debt.id);
         if (updateError) throw updateError;
 
-        // Create a transaction for the payment
-        if (debt.current_balance > 0) { // Only create transaction if there was a balance
+        if (debt.current_balance > 0) {
           const { error: transactionError } = await supabase.from('transactions').insert({
             user_id: debt.user_id,
             date: new Date().toISOString(),
             type: 'expense',
             category: 'Debt Payment',
-            amount: debt.current_balance, // Amount paid is the current balance being settled
+            amount: debt.current_balance,
             memo: `Full payment for ${debt.name}`,
             linked_debt_id: debt.id,
           });
           if (transactionError) throw transactionError;
         }
       } else {
-        // Mark as active: set status to 'active' and current_balance back to original_amount
         const { error: updateError } = await supabase
           .from('debts')
           .update({ status: 'active', current_balance: debt.original_amount })
           .eq('id', debt.id);
         if (updateError) throw updateError;
 
-        // Delete any associated transaction that was created when it was marked paid
         const { error: deleteTransactionError } = await supabase
           .from('transactions')
           .delete()
           .eq('linked_debt_id', debt.id)
           .eq('category', 'Debt Payment')
-          .eq('memo', `Full payment for ${debt.name}`); // Use memo to be more specific
+          .eq('memo', `Full payment for ${debt.name}`);
         
         if (deleteTransactionError) {
           console.warn('Could not delete associated transaction:', deleteTransactionError.message);
@@ -127,19 +113,15 @@ export const DebtList = ({ debts, isLoading, isError }: DebtListProps) => {
     },
   });
 
+  const handleToggleStatus = (debt: Debt) => {
+    markDebtStatusMutation.mutate({ debt, newStatus: debt.status === 'paid' ? 'active' : 'paid' });
+  };
+
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Your Debts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </CardContent>
+        <CardHeader><CardTitle>Your Debts</CardTitle></CardHeader>
+        <CardContent><div className="space-y-2"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></div></CardContent>
       </Card>
     );
   }
@@ -151,15 +133,8 @@ export const DebtList = ({ debts, isLoading, isError }: DebtListProps) => {
   if (!debts || debts.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Your Debts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <h3 className="text-lg font-semibold">No Debts Yet</h3>
-            <p className="text-muted-foreground">Click "Add New Debt" to get started.</p>
-          </div>
-        </CardContent>
+        <CardHeader><CardTitle>Your Debts</CardTitle></CardHeader>
+        <CardContent><div className="text-center py-12"><h3 className="text-lg font-semibold">No Debts Yet</h3><p className="text-muted-foreground">Click "Add New Debt" to get started.</p></div></CardContent>
       </Card>
     );
   }
@@ -167,59 +142,37 @@ export const DebtList = ({ debts, isLoading, isError }: DebtListProps) => {
   return (
     <>
       <Card className="h-full">
-        <CardHeader>
-          <CardTitle>Your Debts</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0"> {/* Added p-0 to remove default card padding */}
-          <div className="overflow-x-auto"> {/* Added overflow-x-auto for horizontal scrolling */}
+        <CardHeader><CardTitle>Your Debts</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[100px]">Name</TableHead> {/* Added min-width */}
-                  <TableHead className="text-right min-w-[100px]">Balance</TableHead> {/* Added min-width */}
-                  <TableHead className="min-w-[100px]">Severity</TableHead> {/* Added min-width */}
-                  <TableHead className="min-w-[100px]">Status</TableHead> {/* Added min-width */}
-                  <TableHead className="text-right min-w-[80px]">Actions</TableHead> {/* Added min-width */}
+                  <TableHead className="min-w-[100px]">Name</TableHead>
+                  <TableHead className="text-right min-w-[100px]">Balance</TableHead>
+                  <TableHead className="min-w-[100px]">Severity</TableHead>
+                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  <TableHead className="text-right min-w-[80px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {debts.map((debt) => {
                   const severityProps = getSeverityBadgeProps(debt.severity);
+                  const isTogglingCurrent = markDebtStatusMutation.isPending && markDebtStatusMutation.variables?.debt.id === debt.id;
                   return (
                     <TableRow key={debt.id}>
                       <TableCell className="font-medium">{debt.name}</TableCell>
                       <TableCell className="text-right">{formatCurrency(debt.current_balance)}</TableCell>
-                      <TableCell>
-                        {debt.severity && <Badge {...severityProps}>{debt.severity}</Badge>}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>{debt.status}</Badge>
-                      </TableCell>
+                      <TableCell>{debt.severity && <Badge {...severityProps}>{debt.severity}</Badge>}</TableCell>
+                      <TableCell><Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>{debt.status}</Badge></TableCell>
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleEditClick(debt)}>
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => markDebtStatusMutation.mutate({ debt, newStatus: debt.status === 'paid' ? 'active' : 'paid' })}
-                              disabled={markDebtStatusMutation.isPending}
-                            >
-                              {debt.status === 'paid' ? 'Mark as Active' : 'Mark as Paid'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteClick(debt)} className="text-destructive focus:bg-destructive/90 focus:text-destructive-foreground">
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <DebtActionsMenu
+                          debt={debt}
+                          onEdit={handleEditClick}
+                          onDelete={handleDeleteClick}
+                          onToggleStatus={handleToggleStatus}
+                          isTogglingStatus={isTogglingCurrent}
+                        />
                       </TableCell>
                     </TableRow>
                   );

@@ -1,14 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Form,
   FormControl,
   FormField,
@@ -31,13 +23,15 @@ import { PlusCircle, CalendarIcon } from "lucide-react";
 import { format, addMonths } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Debt } from "@/types/debt";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
+import { DrawerClose } from "@/components/ui/drawer";
 
 const planFormSchema = z.object({
   name: z.string().min(1, "Plan name is required."),
   total_amount: z.coerce.number().min(1, "Total amount must be greater than 0."),
   number_of_payments: z.coerce.number().min(1, "Select the number of payments."),
   final_due_date: z.date({ required_error: "A final due date is required." }),
-  debt_id: z.string().optional().nullable(), // New optional field for linking to a debt
+  debt_id: z.string().optional().nullable(),
 });
 
 type PlanFormValues = z.infer<typeof planFormSchema>;
@@ -58,7 +52,7 @@ export const AddPaymentPlanDialog = () => {
   const form = useForm<PlanFormValues>({
     resolver: zodResolver(planFormSchema),
     defaultValues: {
-      debt_id: "", // Initialize debt_id
+      debt_id: "",
     },
   });
 
@@ -95,7 +89,6 @@ export const AddPaymentPlanDialog = () => {
 
     const paymentAmount = data.total_amount / data.number_of_payments;
     const planItems = Array.from({ length: data.number_of_payments }, (_, i) => {
-      // Calculate payment dates by working backwards from the final due date
       const paymentDate = addMonths(data.final_due_date, -(data.number_of_payments - 1 - i));
       return {
         plan_id: newPlan.id,
@@ -103,7 +96,7 @@ export const AddPaymentPlanDialog = () => {
         scheduled_date: format(paymentDate, 'yyyy-MM-dd'),
         amount_planned: paymentAmount,
         paid: false,
-        debt_id: data.debt_id || null, // Pass the selected debt_id
+        debt_id: data.debt_id || null,
       };
     });
 
@@ -123,18 +116,24 @@ export const AddPaymentPlanDialog = () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={
         <Button>
           <PlusCircle className="mr-2" />
           Create New Plan
         </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create a New Payment Plan</DialogTitle>
-          <DialogDescription>Fill out the details below to set up your plan.</DialogDescription>
-        </DialogHeader>
+      }
+      title="Create a New Payment Plan"
+      description="Fill out the details below to set up your plan."
+      drawerFooter={
+        <DrawerClose asChild>
+          <Button variant="outline">Cancel</Button>
+        </DrawerClose>
+      }
+    >
+      <div className="pt-4 sm:pt-0">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="name" render={({ field }) => (
@@ -210,7 +209,7 @@ export const AddPaymentPlanDialog = () => {
             </Button>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ResponsiveDialog>
   );
 };
