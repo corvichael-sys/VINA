@@ -1,12 +1,12 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, PiggyBank, Wallet, PieChart, Calendar, ListChecks, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: PiggyBank }, // Changed to Dashboard
+  { href: "/dashboard", label: "Dashboard", icon: PiggyBank },
   { href: "/paychecks", label: "Paychecks", icon: Wallet },
   { href: "/budgets", label: "Budgets", icon: PieChart },
   { href: "/transactions", label: "Transactions", icon: ListChecks },
@@ -39,7 +39,7 @@ export const AppLayout = () => {
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link to="/" className="flex items-center gap-2 font-semibold">
+            <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
               <PiggyBank className="h-6 w-6 text-primary" />
               <span className="">VINA</span>
             </Link>
@@ -59,6 +59,7 @@ export const AppLayout = () => {
           <div className="flex items-center gap-4">
             <span className="font-medium">{profile?.username || 'User'}</span>
             <Avatar className="h-9 w-9">
+              <AvatarImage src={profile?.avatar_url ?? undefined} alt="User avatar" />
               <AvatarFallback><User /></AvatarFallback>
             </Avatar>
             <Button onClick={logout} variant="outline" size="sm">Sign Out</Button>
