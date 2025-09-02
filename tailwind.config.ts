@@ -93,4 +93,12 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate")],
+  safelist: [
+    'theme-red',
+    'theme-orange',
+    'theme-yellow',
+    'theme-green',
+    'theme-indigo',
+    'theme-violet',
+  ],
 } satisfies Config;
