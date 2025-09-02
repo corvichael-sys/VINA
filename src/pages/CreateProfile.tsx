@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 
 const profileFormSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters.").max(20, "Username must be 20 characters or less."),
+  username: z.string().min(3, "Username must be at least 3 characters.").max(20, "Username must be 20 characters or less.").refine(s => !s.includes('@'), "Username cannot contain '@' symbol."),
   pin: z.string().min(4, "PIN must be 4-6 digits.").max(6, "PIN must be 4-6 digits.").regex(/^\d+$/, "PIN must only contain digits."),
   pinConfirm: z.string(),
   avatar: z.instanceof(FileList).optional(),
@@ -39,14 +39,14 @@ const CreateProfile = () => {
 
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
-    let avatar_url: string | undefined = undefined;
+    let avatar_path: string | undefined = undefined;
 
     // 1. Handle avatar upload if one is provided
     if (data.avatar && data.avatar.length > 0) {
       const file = data.avatar[0];
       const fileExt = file.name.split('.').pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `public/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -57,28 +57,37 @@ const CreateProfile = () => {
         setIsSubmitting(false);
         return;
       }
-      avatar_url = filePath;
+      avatar_path = filePath;
     }
 
-    // 2. Call the edge function to create the user
-    const { error: functionError } = await supabase.functions.invoke('create-user-with-pin', {
-      body: {
-        username: data.username,
-        pin: data.pin,
-        avatar_url: avatar_url,
+    // 2. Sign up the new user using the PIN as the password
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: `${data.username}@debt-tracker.local`, // Create a dummy email
+      password: data.pin,
+      options: {
+        data: {
+          username: data.username,
+          avatar_url: avatar_path,
+        },
       },
     });
 
-    if (functionError) {
-      toast({ variant: "destructive", title: "Failed to Create Profile", description: functionError.message });
+    if (signUpError) {
+      toast({ variant: "destructive", title: "Failed to Create Profile", description: signUpError.message });
       setIsSubmitting(false);
       return;
     }
+    
+    if (signUpData.user) {
+        // Store profile in local storage for the lock screen to find
+        const profiles = JSON.parse(localStorage.getItem('profiles') || '[]');
+        profiles.push({ username: data.username, avatar_url: avatar_path });
+        localStorage.setItem('profiles', JSON.stringify(profiles));
+        localStorage.setItem('lastUsername', data.username);
 
-    // 3. On success, sign in the user with a temporary password (this part is tricky without a password)
-    // For now, we will just redirect to the lock screen. We will implement the PIN login next.
-    toast({ title: "Profile Created!", description: "You can now log in with your new PIN." });
-    navigate('/');
+        toast({ title: "Profile Created!", description: "You can now log in with your new PIN." });
+        navigate('/');
+    }
   };
 
   return (
