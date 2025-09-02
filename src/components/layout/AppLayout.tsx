@@ -59,7 +59,10 @@ export const AppLayout = () => {
           <div className="flex items-center gap-4">
             <span className="font-medium">{profile?.username || 'User'}</span>
             <Avatar className="h-9 w-9">
-              <AvatarImage src={profile?.avatar_url ?? undefined} alt="User avatar" />
+              <AvatarImage 
+                src={profile?.avatar_url ? `${profile.avatar_url}?t=${new Date().getTime()}` : undefined} 
+                alt="User avatar" 
+              />
               <AvatarFallback><User /></AvatarFallback>
             </Avatar>
             <Button onClick={logout} variant="outline" size="sm">Sign Out</Button>
