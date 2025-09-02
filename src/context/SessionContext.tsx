@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 // Define the shape of a user profile
 type Profile = {
   username: string;
-  avatar_url: string;
+  avatar_url: string | null; // This will store the path in storage, not the public URL
+  public_avatar_url: string | null; // This will store the public URL for display
 };
 
 // Define the shape of the context value
@@ -27,6 +28,32 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchProfile = async (userId: string) => {
+    const { data: profileData, error: profileError } = await supabase
+      .from('users_profile')
+      .select('username, avatar_url')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      return null;
+    }
+
+    let publicAvatarUrl: string | null = null;
+    if (profileData.avatar_url) {
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(profileData.avatar_url);
+      publicAvatarUrl = publicUrlData.publicUrl;
+    }
+
+    return {
+      ...profileData,
+      public_avatar_url: publicAvatarUrl,
+    };
+  };
+
   useEffect(() => {
     const setData = async () => {
       setIsLoading(true);
@@ -39,16 +66,10 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('users_profile')
-          .select('username, avatar_url')
-          .eq('id', session.user.id)
-          .single();
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-        } else {
-          setProfile(profileData);
-        }
+        const fetchedProfile = await fetchProfile(session.user.id);
+        setProfile(fetchedProfile);
+      } else {
+        setProfile(null);
       }
       setIsLoading(false);
     };
@@ -59,9 +80,8 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
       setSession(session);
       setUser(session?.user ?? null);
       if (_event === 'SIGNED_IN' && session?.user) {
-        const { data, error } = await supabase.from('users_profile').select('username, avatar_url').eq('id', session.user.id).single();
-        if (error) console.error('Error fetching profile on sign in:', error);
-        else setProfile(data);
+        const fetchedProfile = await fetchProfile(session.user.id);
+        setProfile(fetchedProfile);
       }
       if (_event === 'SIGNED_OUT') {
         setProfile(null);

@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Profile {
   username: string;
-  avatar_url?: string;
+  avatar_url?: string; // This is the path in storage
+  public_avatar_url?: string; // This is the public URL for display
 }
 
 const LockScreen = () => {
@@ -23,17 +24,26 @@ const LockScreen = () => {
 
   useEffect(() => {
     const storedProfiles = JSON.parse(localStorage.getItem('profiles') || '[]');
-    setProfiles(storedProfiles);
+    // For profiles loaded from localStorage, we need to generate public URLs if avatar_url exists
+    const profilesWithPublicUrls = storedProfiles.map((p: Profile) => {
+      if (p.avatar_url) {
+        const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(p.avatar_url);
+        return { ...p, public_avatar_url: publicUrlData.publicUrl };
+      }
+      return p;
+    });
+    setProfiles(profilesWithPublicUrls);
+
     const lastUsername = localStorage.getItem('lastUsername');
     if (lastUsername) {
-      const lastProfile = storedProfiles.find((p: Profile) => p.username === lastUsername);
+      const lastProfile = profilesWithPublicUrls.find((p: Profile) => p.username === lastUsername);
       if (lastProfile) {
         setSelectedProfile(lastProfile);
-      } else if (storedProfiles.length > 0) {
-        setSelectedProfile(storedProfiles[0]);
+      } else if (profilesWithPublicUrls.length > 0) {
+        setSelectedProfile(profilesWithPublicUrls[0]);
       }
-    } else if (storedProfiles.length > 0) {
-      setSelectedProfile(storedProfiles[0]);
+    } else if (profilesWithPublicUrls.length > 0) {
+      setSelectedProfile(profilesWithPublicUrls[0]);
     }
   }, []);
 
@@ -88,7 +98,7 @@ const LockScreen = () => {
                     {profiles.length > 0 ? profiles.map(profile => (
                         <button key={profile.username} onClick={() => setSelectedProfile(profile)} className="w-full flex items-center gap-4 p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-left">
                             <Avatar>
-                                <AvatarImage src={profile.avatar_url} />
+                                <AvatarImage src={profile.public_avatar_url} />
                                 <AvatarFallback><User /></AvatarFallback>
                             </Avatar>
                             <span className="text-lg font-medium">{profile.username}</span>
@@ -109,7 +119,7 @@ const LockScreen = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-xs text-center">
         <Avatar className="mx-auto h-20 w-20 mb-4">
-            <AvatarImage src={selectedProfile.avatar_url} />
+            <AvatarImage src={selectedProfile.public_avatar_url} />
             <AvatarFallback className="text-3xl"><User /></AvatarFallback>
         </Avatar>
         <h1 className="text-3xl font-bold mb-2">Welcome, {selectedProfile.username}</h1>

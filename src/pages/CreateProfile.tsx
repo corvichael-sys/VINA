@@ -39,35 +39,17 @@ const CreateProfile = () => {
 
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
-    let avatar_path: string | undefined = undefined;
+    let avatar_path_in_storage: string | undefined = undefined;
 
-    // 1. Handle avatar upload if one is provided
-    if (data.avatar && data.avatar.length > 0) {
-      const file = data.avatar[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `public/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        toast({ variant: "destructive", title: "Avatar Upload Failed", description: uploadError.message });
-        setIsSubmitting(false);
-        return;
-      }
-      avatar_path = filePath;
-    }
-
-    // 2. Sign up the new user using the PIN as the password
+    // 1. Sign up the new user using the PIN as the password
+    // Initial signup will create the auth.users entry and trigger handle_new_user to create users_profile
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: `${data.username}@debt-tracker.local`, // Create a dummy email
       password: data.pin,
       options: {
         data: {
           username: data.username,
-          avatar_url: avatar_path,
+          // avatar_url will be updated after upload
         },
       },
     });
@@ -78,10 +60,44 @@ const CreateProfile = () => {
       return;
     }
     
+    const userId = signUpData.user?.id;
+
+    // 2. Handle avatar upload if one is provided, now that the user is signed up
+    if (data.avatar && data.avatar.length > 0 && userId) {
+      const file = data.avatar[0];
+      const fileExt = file.name.split('.').pop();
+      // Store avatar in a user-specific folder within the bucket
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${userId}/${fileName}`; // User-specific path
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        toast({ variant: "destructive", title: "Avatar Upload Failed", description: uploadError.message });
+        setIsSubmitting(false);
+        return;
+      }
+      avatar_path_in_storage = filePath;
+
+      // 3. Update the user's profile with the avatar URL
+      const { error: updateProfileError } = await supabase
+        .from('users_profile')
+        .update({ avatar_url: avatar_path_in_storage })
+        .eq('id', userId);
+
+      if (updateProfileError) {
+        toast({ variant: "destructive", title: "Profile Update Failed", description: updateProfileError.message });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     if (signUpData.user) {
         // Store profile in local storage for the lock screen to find
         const profiles = JSON.parse(localStorage.getItem('profiles') || '[]');
-        profiles.push({ username: data.username, avatar_url: avatar_path });
+        profiles.push({ username: data.username, avatar_url: avatar_path_in_storage }); // Store the path, not the public URL
         localStorage.setItem('profiles', JSON.stringify(profiles));
         localStorage.setItem('lastUsername', data.username);
 
