@@ -1,8 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, PiggyBank, Wallet, PieChart, Calendar, ListChecks, Settings } from "lucide-react";
+import { PiggyBank, Wallet, PieChart, Calendar, ListChecks, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -58,13 +57,6 @@ export const AppLayout = () => {
           </div>
           <div className="flex items-center gap-4">
             <span className="font-medium">{profile?.username || 'User'}</span>
-            <Avatar className="h-9 w-9">
-              <AvatarImage 
-                src={profile?.avatar_url ? `${profile.avatar_url}?t=${new Date().getTime()}` : undefined} 
-                alt="User avatar" 
-              />
-              <AvatarFallback><User /></AvatarFallback>
-            </Avatar>
             <Button onClick={logout} variant="outline" size="sm">Sign Out</Button>
           </div>
         </header>

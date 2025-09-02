@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 // Define the shape of a user profile
 type Profile = {
   username: string;
-  avatar_url: string | null;
 };
 
 // Define the shape of the context value
@@ -31,7 +30,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
   const fetchProfile = useCallback(async (userId: string) => {
     const { data: profileData, error: profileError } = await supabase
       .from('users_profile')
-      .select('username, avatar_url')
+      .select('username') // Removed avatar_url
       .eq('id', userId)
       .single();
 

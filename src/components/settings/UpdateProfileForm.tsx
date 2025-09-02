@@ -9,9 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 
 const profileFormSchema = z.object({
@@ -23,7 +21,6 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export const UpdateProfileForm = () => {
   const { profile, user, refreshProfile } = useSession();
   const { toast } = useToast();
-  const [uploading, setUploading] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -68,67 +65,6 @@ export const UpdateProfileForm = () => {
     updateProfileMutation.mutate(data);
   };
 
-  const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try { // Removed the extra '{' here
-      setUploading(true);
-      if (!event.target.files || event.target.files.length === 0) {
-        throw new Error('You must select an image to upload.');
-      }
-      if (!user) throw new Error('User not found');
-
-      const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      // Remove old avatar if it exists
-      if (profile?.avatar_url) {
-        const oldAvatarPath = profile.avatar_url.substring(profile.avatar_url.lastIndexOf('/') + 1);
-        if (oldAvatarPath) {
-          await supabase.storage.from('avatars').remove([oldAvatarPath]);
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const { error: updateError } = await supabase
-        .from('users_profile')
-        .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
-        .eq('id', user.id);
-
-      if (updateError) {
-        throw updateError;
-      }
-      
-      refreshProfile();
-
-      toast({
-        title: 'Avatar updated!',
-        description: 'Your new avatar has been saved.',
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          variant: 'destructive',
-          title: 'Error uploading avatar',
-          description: error.message,
-        });
-      }
-    } finally {
-      setUploading(false);
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -136,35 +72,7 @@ export const UpdateProfileForm = () => {
         <CardDescription>Update your personal information here.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20">
-            <AvatarImage 
-              src={profile?.avatar_url ? `${profile.avatar_url}?t=${new Date().getTime()}` : undefined} 
-              alt="User avatar" 
-            />
-            <AvatarFallback>
-              <User className="h-10 w-10" />
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <label htmlFor="avatar-upload" className="cursor-pointer">
-              <Button asChild variant="outline" disabled={uploading}>
-                <span>{uploading ? 'Uploading...' : 'Upload new picture'}</span>
-              </Button>
-            </label>
-            <Input
-              id="avatar-upload"
-              type="file"
-              accept="image/*"
-              onChange={uploadAvatar}
-              disabled={uploading}
-              className="hidden"
-            />
-            <p className="text-sm text-muted-foreground mt-2">
-              PNG, JPG, GIF up to 1MB.
-            </p>
-          </div>
-        </div>
+        {/* Removed avatar display and upload section */}
         <Separator />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
