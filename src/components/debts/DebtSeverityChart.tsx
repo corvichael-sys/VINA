@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/chart";
 import { Debt } from "@/types/debt";
 import { Skeleton } from "../ui/skeleton";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react"; // Import useState and useEffect
 
 interface DebtSeverityChartProps {
   debts: Debt[] | undefined;
@@ -38,18 +38,23 @@ const CHART_COLOR_VAR_NAMES = [
 ];
 
 export const DebtSeverityChart = ({ debts, isLoading }: DebtSeverityChartProps) => {
-  // Memoize the actual HSL color values from CSS variables
-  const actualChartColors = useMemo(() => {
-    // Check if window is defined to handle server-side rendering
-    if (typeof window === 'undefined') return []; 
-    const rootStyles = getComputedStyle(document.documentElement);
-    return CHART_COLOR_VAR_NAMES.map(varName => {
-      // Get the raw HSL string (e.g., "12 76% 61%")
-      const hslValues = rootStyles.getPropertyValue(varName).trim();
-      // Convert to a valid CSS hsl() function string for recharts
-      return `hsl(${hslValues})`;
-    });
-  }, []); // Empty dependency array means this runs once after initial render
+  const [actualChartColors, setActualChartColors] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const rootStyles = getComputedStyle(document.documentElement);
+      const colors = CHART_COLOR_VAR_NAMES.map(varName => {
+        const hslValues = rootStyles.getPropertyValue(varName).trim();
+        // Provide a fallback color if the variable is not found or empty
+        if (!hslValues) {
+          // Fallback to a default grey if CSS variable is not found
+          return 'hsl(0, 0%, 50%)'; 
+        }
+        return `hsl(${hslValues})`;
+      });
+      setActualChartColors(colors);
+    }
+  }, []); // Run once on mount to get computed styles
 
   const chartData = useMemo(() => {
     // Ensure colors are loaded before processing chart data
