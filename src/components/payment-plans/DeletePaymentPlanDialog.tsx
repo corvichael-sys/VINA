@@ -31,7 +31,10 @@ export const DeletePaymentPlanDialog = ({ plan, children, onSuccess }: DeletePay
       toast.error("Failed to delete payment plan. Please try again.");
     } else {
       toast.success("Payment plan deleted successfully.");
-      onSuccess();
+      // Defensive check to ensure onSuccess is a function before calling it
+      if (typeof onSuccess === 'function') {
+        onSuccess();
+      }
       setIsOpen(false);
     }
   };
