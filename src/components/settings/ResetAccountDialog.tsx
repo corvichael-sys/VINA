@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 interface ResetAccountDialogProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface ResetAccountDialogProps {
 export const ResetAccountDialog = ({ isOpen, onOpenChange }: ResetAccountDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleReset = async () => {
     setIsLoading(true);
@@ -37,8 +39,8 @@ export const ResetAccountDialog = ({ isOpen, onOpenChange }: ResetAccountDialogP
         title: "Account Reset Successful",
         description: "All your data has been deleted. Your account is now like new.",
       });
-      // Refresh the page to reflect the changes
-      window.location.reload();
+      // Navigate to dashboard instead of reloading
+      navigate('/dashboard');
     }
     onOpenChange(false);
   };
