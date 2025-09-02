@@ -170,61 +170,63 @@ export const DebtList = ({ debts, isLoading, isError }: DebtListProps) => {
         <CardHeader>
           <CardTitle>Your Debts</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="text-right">Balance</TableHead>
-                <TableHead>Severity</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {debts.map((debt) => {
-                const severityProps = getSeverityBadgeProps(debt.severity);
-                return (
-                  <TableRow key={debt.id}>
-                    <TableCell className="font-medium">{debt.name}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(debt.current_balance)}</TableCell>
-                    <TableCell>
-                      {debt.severity && <Badge {...severityProps}>{debt.severity}</Badge>}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>{debt.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleEditClick(debt)}>
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => markDebtStatusMutation.mutate({ debt, newStatus: debt.status === 'paid' ? 'active' : 'paid' })}
-                            disabled={markDebtStatusMutation.isPending}
-                          >
-                            {debt.status === 'paid' ? 'Mark as Active' : 'Mark as Paid'}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteClick(debt)} className="text-destructive focus:bg-destructive/90 focus:text-destructive-foreground">
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+        <CardContent className="p-0"> {/* Added p-0 to remove default card padding */}
+          <div className="overflow-x-auto"> {/* Added overflow-x-auto for horizontal scrolling */}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[100px]">Name</TableHead> {/* Added min-width */}
+                  <TableHead className="text-right min-w-[100px]">Balance</TableHead> {/* Added min-width */}
+                  <TableHead className="min-w-[100px]">Severity</TableHead> {/* Added min-width */}
+                  <TableHead className="min-w-[100px]">Status</TableHead> {/* Added min-width */}
+                  <TableHead className="text-right min-w-[80px]">Actions</TableHead> {/* Added min-width */}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {debts.map((debt) => {
+                  const severityProps = getSeverityBadgeProps(debt.severity);
+                  return (
+                    <TableRow key={debt.id}>
+                      <TableCell className="font-medium">{debt.name}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(debt.current_balance)}</TableCell>
+                      <TableCell>
+                        {debt.severity && <Badge {...severityProps}>{debt.severity}</Badge>}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>{debt.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleEditClick(debt)}>
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => markDebtStatusMutation.mutate({ debt, newStatus: debt.status === 'paid' ? 'active' : 'paid' })}
+                              disabled={markDebtStatusMutation.isPending}
+                            >
+                              {debt.status === 'paid' ? 'Mark as Active' : 'Mark as Paid'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteClick(debt)} className="text-destructive focus:bg-destructive/90 focus:text-destructive-foreground">
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
       {selectedDebt && (
