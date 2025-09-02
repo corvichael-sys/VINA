@@ -2,6 +2,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator"; // Import Separator
 import { mainNavItems, settingsNavItem, NavItem } from "@/config/nav"; // Import NavItem type
 
 export const MobileNav = () => {
@@ -32,7 +33,7 @@ export const MobileNav = () => {
                 </Button>
               ))}
             </nav>
-            <hr className="my-2" />
+            <Separator className="my-2" /> {/* Replaced hr with Separator */}
             <nav>
               <Button
                 variant={location.pathname.startsWith(settingsNavItem.href) ? "secondary" : "ghost"}
