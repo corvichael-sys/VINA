@@ -32,7 +32,7 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
         .eq("id", item.id);
       if (itemUpdateError) throw itemUpdateError;
 
-      // Step 2: If marking as paid, create a transaction and update debt balance
+      // If MARKING AS PAID
       if (paid) {
         // Create a corresponding transaction
         const { error: transactionError } = await supabase.from("transactions").insert({
@@ -43,10 +43,11 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
           amount: item.amount_planned,
           memo: `Payment for plan: ${plan.name}`,
           linked_debt_id: item.debt_id,
+          plan_item_id: item.id, // Link transaction to the plan item
         });
         if (transactionError) throw transactionError;
 
-        // If linked to a debt, update the debt's balance
+        // If linked to a debt, update the debt's balance (decrease)
         if (item.debt_id) {
           const { data: debt, error: fetchError } = await supabase
             .from('debts')
@@ -64,9 +65,38 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
 
           if (debtUpdateError) throw debtUpdateError;
         }
+      } 
+      // If UN-MARKING AS PAID
+      else {
+        // Delete the corresponding transaction
+        const { error: transactionError } = await supabase
+          .from('transactions')
+          .delete()
+          .eq('plan_item_id', item.id);
+        
+        if (transactionError) {
+            console.warn('Could not delete transaction:', transactionError.message);
+        }
+
+        // If linked to a debt, revert the debt's balance (increase)
+        if (item.debt_id) {
+          const { data: debt, error: fetchError } = await supabase
+            .from('debts')
+            .select('current_balance')
+            .eq('id', item.debt_id)
+            .single();
+
+          if (fetchError) throw fetchError;
+
+          const newBalance = debt.current_balance + item.amount_planned;
+          const { error: debtUpdateError } = await supabase
+            .from('debts')
+            .update({ current_balance: newBalance })
+            .eq('id', item.debt_id);
+
+          if (debtUpdateError) throw debtUpdateError;
+        }
       }
-      // Note: Un-checking a payment currently does not reverse the transaction
-      // or the debt balance update to prevent accidental data changes.
     },
     onSuccess: () => {
       // Step 3: Invalidate all relevant queries to refresh the UI
