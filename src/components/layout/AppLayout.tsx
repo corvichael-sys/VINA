@@ -2,11 +2,11 @@ import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Landmark, Wallet, PieChart, Calendar, ListChecks } from "lucide-react";
+import { User, PiggyBank, Wallet, PieChart, Calendar, ListChecks } from "lucide-react"; // Changed Landmark to PiggyBank
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/debts", label: "Debts", icon: Landmark },
+  { href: "/debts", label: "Debts", icon: PiggyBank }, // Changed Landmark to PiggyBank
   { href: "/paychecks", label: "Paychecks", icon: Wallet },
   { href: "/budgets", label: "Budgets", icon: PieChart },
   { href: "/transactions", label: "Transactions", icon: ListChecks },
@@ -39,8 +39,8 @@ export const AppLayout = () => {
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link to="/" className="flex items-center gap-2 font-semibold">
-              <Landmark className="h-6 w-6 text-primary" />
-              <span className="">Debt Destroyer</span>
+              <PiggyBank className="h-6 w-6 text-primary" /> {/* Changed Landmark to PiggyBank */}
+              <span className="">VINA</span> {/* Renamed Debt Destroyer to VINA */}
             </Link>
           </div>
           <div className="flex-1">
