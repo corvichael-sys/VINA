@@ -13,7 +13,7 @@ import { startOfMonth, endOfMonth, format } from "date-fns";
 
 interface Paycheck { id: string; amount: number; }
 interface Budget { id: string; planned_amount: number; }
-interface Transaction { id: string; amount: number; type: string; linked_debt_id: string | null; }
+interface Transaction { id: string; amount: number; type: string; category: string; linked_debt_id: string | null; }
 interface PaymentPlan { id: string; }
 
 const formatCurrency = (amount: number) => {
@@ -73,7 +73,7 @@ const fetchTransactionsThisMonth = async (userId: string | undefined, startDate:
   if (!userId) return [];
   const { data, error } = await supabase
     .from("transactions")
-    .select("id, amount, type, linked_debt_id") // Added 'id'
+    .select("id, amount, type, category, linked_debt_id") // Added 'id' and 'category'
     .eq("user_id", userId)
     .gte("date", startDate.toISOString())
     .lte("date", endDate.toISOString());
@@ -140,7 +140,7 @@ const DashboardPage = () => {
   const numPaymentPlans = paymentPlans?.length || 0;
 
   const debtPaymentsThisMonth = transactions
-    ?.filter(t => t.type === 'expense' && t.linked_debt_id)
+    ?.filter(t => t.category === 'Debt Payment')
     .reduce((acc, t) => acc + t.amount, 0) || 0;
 
   const newDebtValueThisMonth = newDebts?.reduce((acc, d) => acc + d.original_amount, 0) || 0;
