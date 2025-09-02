@@ -98,13 +98,14 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
         }
       }
     },
-    onSuccess: (_data, _item) => { // Fixed: prefixed with underscore
+    onSuccess: (_data, _item) => {
       // Invalidate all relevant queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ["plan_items", plan.id] });
       queryClient.invalidateQueries({ queryKey: ["paymentPlans"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["debts"] });
       queryClient.invalidateQueries({ queryKey: ["newDebts"] });
+      queryClient.invalidateQueries({ queryKey: ["debt-summary"] }); // Force summary data to refresh
       toast({ title: "Payment status updated!" });
     },
     onError: (error) => {
