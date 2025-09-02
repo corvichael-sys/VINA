@@ -28,33 +28,49 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+// Define the CSS variable names
+const CHART_COLOR_VAR_NAMES = [
+  "--chart-1",
+  "--chart-2",
+  "--chart-3",
+  "--chart-4",
+  "--chart-5",
 ];
 
 export const DebtSeverityChart = ({ debts, isLoading }: DebtSeverityChartProps) => {
+  // Memoize the actual HSL color values from CSS variables
+  const actualChartColors = useMemo(() => {
+    // Check if window is defined to handle server-side rendering
+    if (typeof window === 'undefined') return []; 
+    const rootStyles = getComputedStyle(document.documentElement);
+    return CHART_COLOR_VAR_NAMES.map(varName => {
+      // Get the raw HSL string (e.g., "12 76% 61%")
+      const hslValues = rootStyles.getPropertyValue(varName).trim();
+      // Convert to a valid CSS hsl() function string for recharts
+      return `hsl(${hslValues})`;
+    });
+  }, []); // Empty dependency array means this runs once after initial render
+
   const chartData = useMemo(() => {
-    if (!debts) return [];
+    // Ensure colors are loaded before processing chart data
+    if (!debts || actualChartColors.length === 0) return []; 
     return debts
       .filter((debt) => debt.current_balance > 0)
       .sort((a, b) => b.current_balance - a.current_balance)
       .map((debt, index) => ({
         name: debt.name,
         value: debt.current_balance,
-        fill: COLORS[index % COLORS.length],
+        // Use the computed HSL values for the fill prop
+        fill: actualChartColors[index % actualChartColors.length], 
       }));
-  }, [debts]);
+  }, [debts, actualChartColors]); // Depend on actualChartColors
 
   const chartConfig = useMemo(() => {
     if (!chartData) return {};
     return chartData.reduce((acc, entry) => {
       acc[entry.name] = {
         label: entry.name,
-        color: entry.fill,
+        color: entry.fill, // Use the actual fill color for ChartConfig
       };
       return acc;
     }, {} as ChartConfig);
