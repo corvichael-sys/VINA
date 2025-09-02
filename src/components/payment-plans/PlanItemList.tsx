@@ -34,6 +34,7 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["plan_items", plan.id] });
       queryClient.invalidateQueries({ queryKey: ["plan_items"] }); // Invalidate the general list too
+      queryClient.invalidateQueries({ queryKey: ["payment_plans"] }); // Invalidate plans to update progress card
       toast({ title: "Payment updated!" });
     },
     onError: (error) => {
@@ -41,7 +42,7 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
     },
   });
 
-  let cumulativePaid = 0;
+  let cumulativePlanned = 0;
 
   return (
     <Table>
@@ -55,16 +56,14 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
       </TableHeader>
       <TableBody>
         {sortedItems.map((item) => {
-          if (item.paid) {
-            cumulativePaid += item.amount_planned;
-          }
-          const remainingBalance = (plan.total_amount || 0) - cumulativePaid;
+          cumulativePlanned += item.amount_planned;
+          const remainingBalance = (plan.total_amount || 0) - cumulativePlanned;
 
           return (
             <TableRow key={item.id} className={item.paid ? "text-muted-foreground" : ""}>
               <TableCell>{format(new Date(item.scheduled_date), "PPP")}</TableCell>
               <TableCell>{formatCurrency(item.amount_planned)}</TableCell>
-              <TableCell>{formatCurrency(remainingBalance)}</TableCell>
+              <TableCell>{formatCurrency(remainingBalance < 0 ? 0 : remainingBalance)}</TableCell>
               <TableCell className="text-center">
                 <Checkbox
                   checked={item.paid}
