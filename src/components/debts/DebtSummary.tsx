@@ -47,7 +47,7 @@ export const DebtSummary = ({ debts, isLoading, totalDebt, debtChangePercentage,
               debtChangePercentage > 0 ? "text-red-500" : "text-green-500"
             )}>
               {debtChangePercentage > 0 ? <ArrowUp className="h-4 w-4 mr-1" /> : <ArrowDown className="h-4 w-4 mr-1" />}
-              {Math.abs(debtChangePercentage).toFixed(1)}% from last month
+              {Math.abs(debtChangePercentage).toFixed(1)}% this month
             </p>
           )}
         </CardContent>
