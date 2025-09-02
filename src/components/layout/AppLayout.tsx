@@ -1,32 +1,71 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
 import { PiggyBank, Wallet, PieChart, Calendar, ListChecks, Settings } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  SidebarInset,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
 
-const navItems = [
+const mainNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: PiggyBank },
   { href: "/paychecks", label: "Paychecks", icon: Wallet },
   { href: "/budgets", label: "Budgets", icon: PieChart },
   { href: "/transactions", label: "Transactions", icon: ListChecks },
   { href: "/payment-plans", label: "Payment Plans", icon: Calendar },
-  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => {
+const AppSidebar = () => {
   const location = useLocation();
-  const isActive = location.pathname.startsWith(href);
+  const navigate = useNavigate();
+
   return (
-    <Link
-      to={href}
-      className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-        isActive && "bg-muted text-primary"
-      )}
-    >
-      <Icon className="h-4 w-4" />
-      {label}
-    </Link>
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <Link to="/dashboard" className="flex items-center gap-2 font-semibold px-2">
+          <PiggyBank className="h-6 w-6 text-primary" />
+          <span className="text-lg group-data-[collapsible=icon]:hidden">VINA</span>
+        </Link>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {mainNavItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                onClick={() => navigate(item.href)}
+                isActive={location.pathname.startsWith(item.href)}
+                tooltip={item.label}
+              >
+                <item.icon className="size-4" />
+                <span>{item.label}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    onClick={() => navigate('/settings')}
+                    isActive={location.pathname.startsWith('/settings')}
+                    tooltip="Settings"
+                >
+                    <Settings className="size-4" />
+                    <span>Settings</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 };
 
@@ -34,36 +73,23 @@ export const AppLayout = () => {
   const { profile, logout } = useSession();
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link to="/dashboard" className="flex items-center gap-2 font-semibold">
-              <PiggyBank className="h-6 w-6 text-primary" />
-              <span className="">VINA</span>
-            </Link>
-          </div>
-          <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              {navItems.map(item => <NavLink key={item.href} {...item} />)}
-            </nav>
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 sticky top-0 z-30">
+          <SidebarTrigger />
           <div className="w-full flex-1">
-            {/* Mobile Nav Trigger can be added here */}
+            {/* Breadcrumbs or other header content can go here */}
           </div>
           <div className="flex items-center gap-4">
             <span className="font-medium">{profile?.username || 'User'}</span>
             <Button onClick={logout} variant="outline" size="sm">Sign Out</Button>
           </div>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
           <Outlet />
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 };
