@@ -2,7 +2,6 @@ export type Debt = {
   id: string;
   user_id: string;
   name: string;
-  creditor?: string | null;
   original_amount: number;
   current_balance: number;
   severity?: 'Low' | 'Medium' | 'High' | null;

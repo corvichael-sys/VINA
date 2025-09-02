@@ -89,7 +89,6 @@ export const DebtList = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Creditor</TableHead>
               <TableHead className="text-right">Balance</TableHead>
               <TableHead>Severity</TableHead>
               <TableHead>Status</TableHead>
@@ -99,7 +98,6 @@ export const DebtList = () => {
             {debts.map((debt) => (
               <TableRow key={debt.id}>
                 <TableCell className="font-medium">{debt.name}</TableCell>
-                <TableCell>{debt.creditor || "-"}</TableCell>
                 <TableCell className="text-right">{formatCurrency(debt.current_balance)}</TableCell>
                 <TableCell>
                   {debt.severity && <Badge variant={getSeverityBadgeVariant(debt.severity)}>{debt.severity}</Badge>}

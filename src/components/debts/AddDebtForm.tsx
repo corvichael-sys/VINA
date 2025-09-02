@@ -36,7 +36,6 @@ import { PlusCircle } from "lucide-react";
 
 const debtFormSchema = z.object({
   name: z.string().min(1, "Debt name is required."),
-  creditor: z.string().optional(),
   current_balance: z.coerce.number().min(0.01, "Balance must be greater than 0."),
   severity: z.enum(["Low", "Medium", "High"]).optional(),
   notes: z.string().optional(),
@@ -55,7 +54,6 @@ export const AddDebtForm = () => {
     resolver: zodResolver(debtFormSchema),
     defaultValues: {
       name: "",
-      creditor: "",
       current_balance: 0,
       notes: "",
     },
@@ -114,19 +112,6 @@ export const AddDebtForm = () => {
                   <FormLabel>Debt Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Credit Card" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="creditor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Creditor</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Bank of America" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
