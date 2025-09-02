@@ -20,7 +20,6 @@ import {
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
-const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
@@ -204,15 +203,19 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
-            }
-            side={side}
+            // Explicitly set side to "top" for mobile dropdown
+            side="top"
+            className={cn(
+              "w-full h-auto top-[3.5rem] rounded-b-lg border-b", // Adjusted for top-down menu
+              "bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden", // p-0 to remove default padding
+              className,
+            )}
+            // Removed the style prop as it's not needed for a top sheet
           >
-            <div className="flex h-full w-full flex-col">{children}</div>
+            {/* The content inside the sheet needs its own padding */}
+            <div className="flex h-full w-full flex-col p-4">
+              {children}
+            </div>
           </SheetContent>
         </Sheet>
       );
