@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { PaymentPlan } from "@/types/paymentPlan";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,60 +12,46 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { PaymentPlan } from "@/types/paymentPlan";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface DeletePaymentPlanDialogProps {
   plan: PaymentPlan;
   children: React.ReactNode;
+  onSuccess: () => void;
 }
 
-export const DeletePaymentPlanDialog = ({ plan, children }: DeletePaymentPlanDialogProps) => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+export const DeletePaymentPlanDialog = ({ plan, children, onSuccess }: DeletePaymentPlanDialogProps) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-  const deleteMutation = useMutation({
-    mutationFn: async (planId: string) => {
-      // Due to ON DELETE CASCADE, deleting the payment_plan will also delete
-      // associated plan_items and payment_plan_debts.
-      const { error } = await supabase.from("payment_plans").delete().eq("id", planId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payment_plans"] });
-      queryClient.invalidateQueries({ queryKey: ["plan_items"] }); // Invalidate plan items as they are cascaded
-      toast({ title: "Payment plan deleted", description: `The plan "${plan.name}" has been removed.` });
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Failed to delete payment plan",
-        description: error.message,
-      });
-    },
-  });
+  const handleDelete = async () => {
+    const { error } = await supabase.from("payment_plans").delete().eq("id", plan.id);
+
+    if (error) {
+      toast.error("Failed to delete payment plan. Please try again.");
+    } else {
+      toast.success("Payment plan deleted successfully.");
+      onSuccess();
+      setIsOpen(false);
+    }
+  };
 
   return (
-    <AlertDialog>
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Are you sure you want to delete this payment plan?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the{" "}
-            <span className="font-semibold text-foreground">"{plan.name}"</span> payment plan and all its associated payment schedule items.
+            This action cannot be undone. This will permanently delete the "{plan.name}" payment plan and all associated data.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => deleteMutation.mutate(plan.id)}
-            disabled={deleteMutation.isPending}
-            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-          >
-            {deleteMutation.isPending ? "Deleting..." : "Delete"}
+          <AlertDialogAction asChild>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

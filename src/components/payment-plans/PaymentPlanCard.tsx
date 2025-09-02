@@ -16,25 +16,19 @@ import { DeletePaymentPlanDialog } from "./DeletePaymentPlanDialog";
 interface PaymentPlanCardProps {
   plan: PaymentPlan;
   items: PlanItem[];
+  onSuccess: () => void;
 }
 
 const formatCurrency = (amount: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
 
-export const PaymentPlanCard = ({ plan, items }: PaymentPlanCardProps) => {
+export const PaymentPlanCard = ({ plan, items, onSuccess }: PaymentPlanCardProps) => {
   const navigate = useNavigate();
   const paidItems = items.filter(item => item.paid);
   const progress = items.length > 0 ? (paidItems.length / items.length) * 100 : 0;
   const amountPaid = paidItems.reduce((sum, item) => sum + item.amount_planned, 0);
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Only navigate if the click is not on the dropdown menu
-    if (!(e.target as HTMLElement).closest('.dropdown-menu-trigger')) {
-      navigate(`/payment-plans/${plan.id}`);
-    }
-  };
-
   return (
-    <Card className="hover:border-primary transition-colors cursor-pointer" onClick={handleCardClick}>
+    <Card className="hover:border-primary transition-colors cursor-pointer" onClick={() => navigate(`/payment-plans/${plan.id}`)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle>{plan.name}</CardTitle>
@@ -48,9 +42,9 @@ export const PaymentPlanCard = ({ plan, items }: PaymentPlanCardProps) => {
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DeletePaymentPlanDialog plan={plan}>
-              <DropdownMenuItem onSelect={(e) => { e.stopPropagation(); }}> {/* Removed e.preventDefault() */}
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+            <DeletePaymentPlanDialog plan={plan} onSuccess={onSuccess}>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
