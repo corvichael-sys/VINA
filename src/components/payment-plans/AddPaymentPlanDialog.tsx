@@ -52,7 +52,7 @@ export const AddPaymentPlanDialog = () => {
   const form = useForm<PlanFormValues>({
     resolver: zodResolver(planFormSchema),
     defaultValues: {
-      debt_id: "",
+      debt_id: null, // Initialize with null instead of empty string
     },
   });
 
@@ -96,7 +96,7 @@ export const AddPaymentPlanDialog = () => {
         scheduled_date: format(paymentDate, 'yyyy-MM-dd'),
         amount_planned: paymentAmount,
         paid: false,
-        debt_id: data.debt_id || null,
+        debt_id: data.debt_id === "none" ? null : data.debt_id, // Convert "none" back to null
       };
     });
 
@@ -186,14 +186,14 @@ export const AddPaymentPlanDialog = () => {
             <FormField control={form.control} name="debt_id" render={({ field }) => (
               <FormItem>
                 <FormLabel>Link to Debt (Optional)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value || ""}>
+                <Select onValueChange={field.onChange} value={field.value ?? "none"}> {/* Use "none" for null/undefined */}
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={areDebtsLoading ? "Loading debts..." : "Select a debt"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">No Debt</SelectItem>
+                    <SelectItem value="none">No Debt</SelectItem> {/* Changed value to "none" */}
                     {debts?.map((debt) => (
                       <SelectItem key={debt.id} value={debt.id}>
                         {debt.name}

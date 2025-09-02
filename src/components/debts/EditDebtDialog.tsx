@@ -63,7 +63,7 @@ export const EditDebtDialog = ({ debt, isOpen, onOpenChange }: EditDebtDialogPro
       form.reset({
         name: debt.name,
         current_balance: debt.current_balance,
-        severity: debt.severity,
+        severity: debt.severity ?? undefined, // Ensure undefined for placeholder
         notes: debt.notes,
       });
     }
@@ -134,7 +134,7 @@ export const EditDebtDialog = ({ debt, isOpen, onOpenChange }: EditDebtDialogPro
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Severity</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select onValueChange={field.onChange} value={field.value ?? undefined}> {/* Use undefined for placeholder */}
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select severity" />
