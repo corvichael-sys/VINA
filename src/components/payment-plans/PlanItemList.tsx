@@ -24,18 +24,58 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
   }, [items]);
 
   const mutation = useMutation({
-    mutationFn: async ({ itemId, paid }: { itemId: string; paid: boolean }) => {
-      const { error } = await supabase
+    mutationFn: async ({ item, paid }: { item: PlanItem; paid: boolean }) => {
+      // Step 1: Update the plan item itself
+      const { error: itemUpdateError } = await supabase
         .from("plan_items")
         .update({ paid, paid_date: paid ? new Date().toISOString() : null })
-        .eq("id", itemId);
-      if (error) throw error;
+        .eq("id", item.id);
+      if (itemUpdateError) throw itemUpdateError;
+
+      // Step 2: If marking as paid, create a transaction and update debt balance
+      if (paid) {
+        // Create a corresponding transaction
+        const { error: transactionError } = await supabase.from("transactions").insert({
+          user_id: item.user_id,
+          date: new Date().toISOString(),
+          type: 'expense',
+          category: 'Debt Payment',
+          amount: item.amount_planned,
+          memo: `Payment for plan: ${plan.name}`,
+          linked_debt_id: item.debt_id,
+        });
+        if (transactionError) throw transactionError;
+
+        // If linked to a debt, update the debt's balance
+        if (item.debt_id) {
+          const { data: debt, error: fetchError } = await supabase
+            .from('debts')
+            .select('current_balance')
+            .eq('id', item.debt_id)
+            .single();
+
+          if (fetchError) throw fetchError;
+
+          const newBalance = debt.current_balance - item.amount_planned;
+          const { error: debtUpdateError } = await supabase
+            .from('debts')
+            .update({ current_balance: newBalance < 0 ? 0 : newBalance })
+            .eq('id', item.debt_id);
+
+          if (debtUpdateError) throw debtUpdateError;
+        }
+      }
+      // Note: Un-checking a payment currently does not reverse the transaction
+      // or the debt balance update to prevent accidental data changes.
     },
     onSuccess: () => {
+      // Step 3: Invalidate all relevant queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ["plan_items", plan.id] });
-      queryClient.invalidateQueries({ queryKey: ["plan_items"] }); // Invalidate the general list too
-      queryClient.invalidateQueries({ queryKey: ["payment_plans"] }); // Invalidate plans to update progress card
-      toast({ title: "Payment updated!" });
+      queryClient.invalidateQueries({ queryKey: ["payment_plans"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["newDebts"] });
+      toast({ title: "Payment status updated!" });
     },
     onError: (error) => {
       toast({ variant: "destructive", title: "Error updating payment", description: error.message });
@@ -67,7 +107,8 @@ export const PlanItemList = ({ plan, items }: PlanItemListProps) => {
               <TableCell className="text-center">
                 <Checkbox
                   checked={item.paid}
-                  onCheckedChange={(checked) => mutation.mutate({ itemId: item.id, paid: !!checked })}
+                  onCheckedChange={(checked) => mutation.mutate({ item, paid: !!checked })}
+                  disabled={mutation.isPending}
                 />
               </TableCell>
             </TableRow>
