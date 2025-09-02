@@ -22,6 +22,10 @@ import {
 import { EditBudgetDialog } from "./EditBudgetDialog.tsx";
 import { DeleteBudgetDialog } from "./DeleteBudgetDialog.tsx";
 import { format } from "date-fns";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-US", {
@@ -38,6 +42,8 @@ export const BudgetList = ({ budgets }: BudgetListProps) => {
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const handleEditClick = (budget: Budget) => {
     setSelectedBudget(budget);
@@ -48,6 +54,48 @@ export const BudgetList = ({ budgets }: BudgetListProps) => {
     setSelectedBudget(budget);
     setDeleteDialogOpen(true);
   };
+
+  const markBudgetStatusMutation = useMutation({
+    mutationFn: async ({ budget, newStatus }: { budget: Budget; newStatus: boolean }) => {
+      const { error: budgetError } = await supabase
+        .from('budgets')
+        .update({ paid: newStatus })
+        .eq('id', budget.id);
+      if (budgetError) throw budgetError;
+
+      if (newStatus) { // Marking as paid
+        const { error: transactionError } = await supabase.from('transactions').insert({
+          user_id: budget.user_id,
+          date: new Date().toISOString(),
+          type: 'expense',
+          category: budget.category,
+          amount: budget.planned_amount,
+          memo: `Budgeted expense for ${budget.category}`,
+          linked_budget_id: budget.id,
+        });
+        if (transactionError) {
+          await supabase.from('budgets').update({ paid: false }).eq('id', budget.id);
+          throw transactionError;
+        }
+      } else { // Marking as unpaid
+        const { error: transactionError } = await supabase
+          .from('transactions')
+          .delete()
+          .eq('linked_budget_id', budget.id);
+        if (transactionError) {
+          console.warn(`Failed to delete linked transaction for budget ${budget.id}:`, transactionError.message);
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      toast({ title: "Budget status updated!" });
+    },
+    onError: (error: Error) => {
+      toast({ variant: "destructive", title: "Failed to update budget status", description: error.message });
+    },
+  });
 
   return (
     <>
@@ -62,15 +110,21 @@ export const BudgetList = ({ budgets }: BudgetListProps) => {
                 <TableHead>Month</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead className="text-right">Planned Amount</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {budgets.map((budget) => (
-                <TableRow key={budget.id}>
+                <TableRow key={budget.id} className={budget.paid ? "text-muted-foreground" : ""}>
                   <TableCell className="font-medium">{format(new Date(budget.month + "-01"), "MMMM yyyy")}</TableCell>
                   <TableCell>{budget.category}</TableCell>
                   <TableCell className="text-right">{formatCurrency(budget.planned_amount)}</TableCell>
+                  <TableCell>
+                    <Badge variant={budget.paid ? 'default' : 'secondary'}>
+                      {budget.paid ? 'Paid' : 'Pending'}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -82,6 +136,12 @@ export const BudgetList = ({ budgets }: BudgetListProps) => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => markBudgetStatusMutation.mutate({ budget, newStatus: !budget.paid })}
+                          disabled={markBudgetStatusMutation.isPending}
+                        >
+                          {budget.paid ? 'Mark as Unpaid' : 'Mark as Paid'}
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEditClick(budget)}>
                           Edit
                         </DropdownMenuItem>

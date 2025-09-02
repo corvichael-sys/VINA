@@ -5,4 +5,5 @@ export type Budget = {
   category: string;
   planned_amount: number;
   created_at?: string;
+  paid?: boolean;
 };
