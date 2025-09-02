@@ -3,14 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SessionContextProvider, useSession } from "./context/SessionContext";
+import { useSession } from "./context/SessionContext";
 
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import CreateProfile from "./pages/CreateProfile";
 import { MadeWithDyad } from "./components/made-with-dyad";
 import { AppLayout } from "./components/layout/AppLayout";
-import DashboardPage from "./pages/DashboardPage"; // Changed import from DebtsPage to DashboardPage
+import DashboardPage from "./pages/DashboardPage";
 import PaychecksPage from "./pages/PaychecksPage";
 import BudgetsPage from "./pages/BudgetsPage";
 import TransactionsPage from "./pages/TransactionsPage";
@@ -40,8 +40,8 @@ const AppRoutes = () => {
           </>
         ) : (
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} /> {/* Changed navigate to /dashboard */}
-            <Route path="/dashboard" element={<DashboardPage />} /> {/* Changed route from /debts to /dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/paychecks" element={<PaychecksPage />} />
             <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
@@ -61,9 +61,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <SessionContextProvider>
-        <AppRoutes />
-      </SessionContextProvider>
+      <AppRoutes />
     </TooltipProvider>
   </QueryClientProvider>
 );
