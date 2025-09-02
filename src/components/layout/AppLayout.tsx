@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { PiggyBank } from "lucide-react"; // Corrected ' = ' to ' from '
+import { PiggyBank } from "lucide-react";
 import {
   SidebarProvider,
   Sidebar,
@@ -23,7 +23,7 @@ const AppSidebar = () => {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b"> {/* Added border-b here */}
+      <SidebarHeader className="border-b border-sidebar-border"> {/* Changed to border-sidebar-border */}
         <Link to="/dashboard" className="flex items-center gap-2 font-semibold px-2">
           <PiggyBank className="h-6 w-6 text-primary" />
           <span className="text-lg group-data-[collapsible=icon]:hidden">VINA</span>
