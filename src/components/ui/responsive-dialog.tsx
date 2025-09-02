@@ -43,13 +43,13 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-        <DrawerContent>
+        <DrawerContent className="flex flex-col">
           <DrawerHeader className="text-left">
             <DrawerTitle>{title}</DrawerTitle>
             <DrawerDescription>{description}</DrawerDescription>
           </DrawerHeader>
-          <div className="px-4">{children}</div>
-          <DrawerFooter className="pt-4">{drawerFooter}</DrawerFooter>
+          <div className="px-4 flex-1 overflow-auto">{children}</div>
+          {drawerFooter && <DrawerFooter className="pt-4">{drawerFooter}</DrawerFooter>}
         </DrawerContent>
       </Drawer>
     );
