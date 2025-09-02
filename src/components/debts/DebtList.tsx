@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants, BadgeProps } from "@/components/ui/badge"; // Import badgeVariants and BadgeProps
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
@@ -23,6 +23,7 @@ import {
 } from "../ui/dropdown-menu";
 import { EditDebtDialog } from "./EditDebtDialog";
 import { DeleteDebtDialog } from "./DeleteDebtDialog";
+import { VariantProps } from "class-variance-authority"; // Import VariantProps
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-US", {
@@ -31,14 +32,17 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const getSeverityBadgeVariant = (severity: Debt['severity']) => {
+// Explicitly type the return value to ensure correct variant inference
+const getSeverityBadgeProps = (severity: Debt['severity']): { variant: VariantProps<typeof badgeVariants>['variant'], className: string } => {
   switch (severity) {
     case 'High':
-      return 'destructive';
+      return { variant: 'destructive', className: 'bg-red-500 text-white' };
     case 'Medium':
-      return 'secondary';
+      return { variant: 'secondary', className: 'bg-yellow-500 text-white' };
+    case 'Low':
+      return { variant: 'default', className: 'bg-green-500 text-white' };
     default:
-      return 'outline';
+      return { variant: 'outline', className: '' };
   }
 };
 
@@ -118,38 +122,41 @@ export const DebtList = ({ debts, isLoading, isError }: DebtListProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {debts.map((debt) => (
-                <TableRow key={debt.id}>
-                  <TableCell className="font-medium">{debt.name}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(debt.current_balance)}</TableCell>
-                  <TableCell>
-                    {debt.severity && <Badge variant={getSeverityBadgeVariant(debt.severity)}>{debt.severity}</Badge>}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>{debt.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleEditClick(debt)}>
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteClick(debt)} className="text-destructive focus:bg-destructive/90 focus:text-destructive-foreground">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {debts.map((debt) => {
+                const severityProps = getSeverityBadgeProps(debt.severity);
+                return (
+                  <TableRow key={debt.id}>
+                    <TableCell className="font-medium">{debt.name}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(debt.current_balance)}</TableCell>
+                    <TableCell>
+                      {debt.severity && <Badge {...severityProps}>{debt.severity}</Badge>}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={debt.status === 'paid' ? 'default' : 'secondary'}>{debt.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleEditClick(debt)}>
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDeleteClick(debt)} className="text-destructive focus:bg-destructive/90 focus:text-destructive-foreground">
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
