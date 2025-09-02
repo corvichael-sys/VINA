@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SessionContextProvider, useSession } from "./context/SessionContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/providers/ThemeProvider"; // Changed to use path alias
 
 import { AppLayout } from "./components/layout/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
@@ -9,7 +10,7 @@ import PaychecksPage from "./pages/PaychecksPage";
 import BudgetsPage from "./pages/BudgetsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import PaymentPlansPage from "./pages/PaymentPlansPage";
-import PaymentPlanDetailPage from "./pages/PaymentPlanDetailPage"; // Import the new page
+import PaymentPlanDetailPage from "./pages/PaymentPlanDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 import Login from "./pages/Login";
 import CreateProfile from "./pages/CreateProfile";
@@ -19,14 +20,16 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <SessionContextProvider>
-        <BrowserRouter>
-          <AppRoutes />
-          <Toaster />
-        </BrowserRouter>
-      </SessionContextProvider>
-    </QueryClientProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <SessionContextProvider>
+          <BrowserRouter>
+            <AppRoutes />
+            <Toaster />
+          </BrowserRouter>
+        </SessionContextProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
@@ -51,7 +54,7 @@ const AppRoutes = () => {
           <Route path="budgets" element={<BudgetsPage />} />
           <Route path="transactions" element={<TransactionsPage />} />
           <Route path="payment-plans" element={<PaymentPlansPage />} />
-          <Route path="payment-plans/:planId" element={<PaymentPlanDetailPage />} /> {/* Add new route */}
+          <Route path="payment-plans/:planId" element={<PaymentPlanDetailPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

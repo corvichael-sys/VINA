@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { DeleteAllTransactionsDialog } from "@/components/settings/DeleteAllTransactionsDialog";
 import { UpdateProfileForm } from "@/components/settings/UpdateProfileForm";
+import { UpdatePasswordForm } from "@/components/settings/UpdatePasswordForm";
+import { ThemeSwitcher } from "@/components/settings/ThemeSwitcher";
 
 const SettingsPage = () => {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -16,6 +18,8 @@ const SettingsPage = () => {
         </div>
 
         <UpdateProfileForm />
+        <UpdatePasswordForm />
+        <ThemeSwitcher />
 
         <Card className="border-destructive">
           <CardHeader>
