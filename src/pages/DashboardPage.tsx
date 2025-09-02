@@ -150,7 +150,7 @@ const DashboardPage = () => {
     ? ((currentTotalDebt - startOfMonthBalance) / startOfMonthBalance) * 100 
     : (currentTotalDebt > 0 ? 100 : 0);
 
-  const fundsLeftOver = incomeThisMonth - debtPaymentsThisMonth;
+  const fundsLeftOver = incomeThisMonth - debtPaymentsThisMonth - budgetedThisMonth; // Updated calculation
 
   const isLoadingOverall = isLoadingDebts || isLoadingNewDebts || isLoadingPaychecks || isLoadingBudgets || isLoadingTransactions || isLoadingPaymentPlans;
 
