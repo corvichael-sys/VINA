@@ -2,16 +2,16 @@ import { Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, PiggyBank, Wallet, PieChart, Calendar, ListChecks, Settings } from "lucide-react"; // Added Settings icon
+import { User, PiggyBank, Wallet, PieChart, Calendar, ListChecks, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/debts", label: "Debts", icon: PiggyBank },
+  { href: "/dashboard", label: "Dashboard", icon: PiggyBank }, // Changed to Dashboard
   { href: "/paychecks", label: "Paychecks", icon: Wallet },
   { href: "/budgets", label: "Budgets", icon: PieChart },
   { href: "/transactions", label: "Transactions", icon: ListChecks },
   { href: "/payment-plans", label: "Payment Plans", icon: Calendar },
-  { href: "/settings", label: "Settings", icon: Settings }, // New Settings item
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => {

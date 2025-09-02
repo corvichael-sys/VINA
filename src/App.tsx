@@ -10,12 +10,12 @@ import Login from "./pages/Login";
 import CreateProfile from "./pages/CreateProfile";
 import { MadeWithDyad } from "./components/made-with-dyad";
 import { AppLayout } from "./components/layout/AppLayout";
-import DebtsPage from "./pages/DebtsPage";
+import DashboardPage from "./pages/DashboardPage"; // Changed import from DebtsPage to DashboardPage
 import PaychecksPage from "./pages/PaychecksPage";
 import BudgetsPage from "./pages/BudgetsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import PaymentPlansPage from "./pages/PaymentPlansPage";
-import SettingsPage from "./pages/SettingsPage"; // Import the new SettingsPage
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -40,13 +40,13 @@ const AppRoutes = () => {
           </>
         ) : (
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Navigate to="/debts" replace />} />
-            <Route path="/debts" element={<DebtsPage />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} /> {/* Changed navigate to /dashboard */}
+            <Route path="/dashboard" element={<DashboardPage />} /> {/* Changed route from /debts to /dashboard */}
             <Route path="/paychecks" element={<PaychecksPage />} />
             <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/payment-plans" element={<PaymentPlansPage />} />
-            <Route path="/settings" element={<SettingsPage />} /> {/* New Settings route */}
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         )}
