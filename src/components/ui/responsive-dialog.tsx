@@ -43,7 +43,7 @@ export const ResponsiveDialog: React.FC<ResponsiveDialogProps> = ({
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-        <DrawerContent className="flex flex-col">
+        <DrawerContent className="flex flex-col max-h-[90vh] overflow-y-auto">
           <DrawerHeader className="text-left">
             <DrawerTitle>{title}</DrawerTitle>
             <DrawerDescription>{description}</DrawerDescription>
