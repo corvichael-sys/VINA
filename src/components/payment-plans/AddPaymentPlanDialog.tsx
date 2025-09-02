@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast"; // Corrected import syntax
+import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { useSession } from "@/context/SessionContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,7 +35,7 @@ const planFormSchema = z.object({
   name: z.string().min(1, "Plan name is required."),
   total_amount: z.coerce.number().min(1, "Total amount must be greater than 0."),
   number_of_payments: z.coerce.number().min(1, "Select the number of payments."),
-  start_date: z.date({ required_error: "A start date is required." }),
+  final_due_date: z.date({ required_error: "A final due date is required." }),
 });
 
 type PlanFormValues = z.infer<typeof planFormSchema>;
@@ -60,8 +60,8 @@ export const AddPaymentPlanDialog = () => {
       name: data.name,
       total_amount: data.total_amount,
       number_of_payments: data.number_of_payments,
-      start_date: format(data.start_date, 'yyyy-MM-dd'), // Explicitly format the date
-      strategy: 'simple', // For generic plans
+      final_due_date: format(data.final_due_date, 'yyyy-MM-dd'),
+      strategy: 'simple',
     };
 
     const { data: newPlan, error: planError } = await supabase
@@ -77,13 +77,17 @@ export const AddPaymentPlanDialog = () => {
     }
 
     const paymentAmount = data.total_amount / data.number_of_payments;
-    const planItems = Array.from({ length: data.number_of_payments }, (_, i) => ({
-      plan_id: newPlan.id,
-      user_id: user.id,
-      scheduled_date: format(addMonths(data.start_date, i), 'yyyy-MM-dd'),
-      amount_planned: paymentAmount,
-      paid: false,
-    }));
+    const planItems = Array.from({ length: data.number_of_payments }, (_, i) => {
+      // Calculate payment dates by working backwards from the final due date
+      const paymentDate = addMonths(data.final_due_date, -(data.number_of_payments - 1 - i));
+      return {
+        plan_id: newPlan.id,
+        user_id: user.id,
+        scheduled_date: format(paymentDate, 'yyyy-MM-dd'),
+        amount_planned: paymentAmount,
+        paid: false,
+      };
+    });
 
     const { error: itemsError } = await supabase.from("plan_items").insert(planItems);
 
@@ -143,9 +147,9 @@ export const AddPaymentPlanDialog = () => {
                 <FormMessage />
               </FormItem>
             )} />
-            <FormField control={form.control} name="start_date" render={({ field }) => (
+            <FormField control={form.control} name="final_due_date" render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Start Date</FormLabel>
+                <FormLabel>Final Due Date</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>

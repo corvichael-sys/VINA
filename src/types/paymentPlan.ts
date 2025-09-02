@@ -3,7 +3,7 @@ export type PaymentPlan = {
   user_id: string;
   name: string;
   strategy: string;
-  start_date: string;
+  final_due_date: string;
   created_at?: string;
   updated_at?: string;
   total_amount?: number | null;
