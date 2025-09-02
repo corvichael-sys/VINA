@@ -1,11 +1,86 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Link, useNavigate } from "react-router-dom";
 import { UserPlus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+
+const profileFormSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters.").max(20, "Username must be 20 characters or less."),
+  pin: z.string().min(4, "PIN must be 4-6 digits.").max(6, "PIN must be 4-6 digits.").regex(/^\d+$/, "PIN must only contain digits."),
+  pinConfirm: z.string(),
+  avatar: z.instanceof(FileList).optional(),
+}).refine(data => data.pin === data.pinConfirm, {
+  message: "PINs do not match.",
+  path: ["pinConfirm"],
+});
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 const CreateProfile = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      username: "",
+      pin: "",
+      pinConfirm: "",
+    },
+  });
+
+  const onSubmit = async (data: ProfileFormValues) => {
+    setIsSubmitting(true);
+    let avatar_url: string | undefined = undefined;
+
+    // 1. Handle avatar upload if one is provided
+    if (data.avatar && data.avatar.length > 0) {
+      const file = data.avatar[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        toast({ variant: "destructive", title: "Avatar Upload Failed", description: uploadError.message });
+        setIsSubmitting(false);
+        return;
+      }
+      avatar_url = filePath;
+    }
+
+    // 2. Call the edge function to create the user
+    const { error: functionError } = await supabase.functions.invoke('create-user-with-pin', {
+      body: {
+        username: data.username,
+        pin: data.pin,
+        avatar_url: avatar_url,
+      },
+    });
+
+    if (functionError) {
+      toast({ variant: "destructive", title: "Failed to Create Profile", description: functionError.message });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // 3. On success, sign in the user with a temporary password (this part is tricky without a password)
+    // For now, we will just redirect to the lock screen. We will implement the PIN login next.
+    toast({ title: "Profile Created!", description: "You can now log in with your new PIN." });
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-sm">
@@ -15,32 +90,69 @@ const CreateProfile = () => {
           <CardDescription>Set up your profile to get started.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" placeholder="e.g., john_doe" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pin">PIN (4-6 digits)</Label>
-              <Input id="pin" type="password" placeholder="****" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pin-confirm">Confirm PIN</Label>
-              <Input id="pin-confirm" type="password" placeholder="****" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="avatar">Profile Picture</Label>
-              <Input id="avatar" type="file" accept="image/png, image/jpeg" />
-            </div>
-
-            <Button type="submit" className="w-full h-11 text-md bg-primary hover:bg-primary/90 mt-6">
-              Create Profile
-            </Button>
-          </form>
-          <div className="mt-4 text-center">
-              <Button asChild variant="link" className="text-muted-foreground">
-                  <Link to="/">Back to Lock Screen</Link>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., john_doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>PIN (4-6 digits)</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pinConfirm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm PIN</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="avatar"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Profile Picture</FormLabel>
+                    <FormControl>
+                      <Input type="file" accept="image/png, image/jpeg" {...form.register("avatar")} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full h-11 text-md bg-primary hover:bg-primary/90 mt-6" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Profile"}
               </Button>
+            </form>
+          </Form>
+          <div className="mt-4 text-center">
+            <Button asChild variant="link" className="text-muted-foreground">
+              <Link to="/">Back to Lock Screen</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
