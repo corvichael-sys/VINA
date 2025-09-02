@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DeleteAllTransactionsDialog } from "@/components/settings/DeleteAllTransactionsDialog";
+import { UpdateProfileForm } from "@/components/settings/UpdateProfileForm";
 
 const SettingsPage = () => {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -13,6 +14,8 @@ const SettingsPage = () => {
           <h1 className="text-lg font-semibold md:text-2xl">Settings</h1>
           <p className="text-muted-foreground">Manage your application settings here.</p>
         </div>
+
+        <UpdateProfileForm />
 
         <Card className="border-destructive">
           <CardHeader>
