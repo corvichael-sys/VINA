@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/context/SessionContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // Removed AvatarImage import
 import { User } from "lucide-react";
 
 const Dashboard = () => {
@@ -11,7 +11,7 @@ const Dashboard = () => {
       <header className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={profile?.public_avatar_url || undefined} />
+            {/* Removed AvatarImage component */}
             <AvatarFallback><User /></AvatarFallback>
           </Avatar>
           <h1 className="text-2xl md:text-3xl font-bold">

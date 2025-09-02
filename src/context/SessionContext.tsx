@@ -5,8 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 // Define the shape of a user profile
 type Profile = {
   username: string;
-  avatar_url: string | null; // This will store the path in storage, not the public URL
-  public_avatar_url: string | null; // This will store the public URL for display
 };
 
 // Define the shape of the context value
@@ -31,7 +29,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
   const fetchProfile = async (userId: string) => {
     const { data: profileData, error: profileError } = await supabase
       .from('users_profile')
-      .select('username, avatar_url')
+      .select('username')
       .eq('id', userId)
       .single();
 
@@ -40,18 +38,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
       return null;
     }
 
-    let publicAvatarUrl: string | null = null;
-    if (profileData.avatar_url) {
-      const { data: publicUrlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(profileData.avatar_url);
-      publicAvatarUrl = publicUrlData.publicUrl;
-    }
-
-    return {
-      ...profileData,
-      public_avatar_url: publicAvatarUrl,
-    };
+    return profileData;
   };
 
   useEffect(() => {

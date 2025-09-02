@@ -16,7 +16,6 @@ const profileFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters.").max(20, "Username must be 20 characters or less.").refine(s => !s.includes('@'), "Username cannot contain '@' symbol."),
   password: z.string().min(6, "Password must be at least 6 characters."),
   passwordConfirm: z.string(),
-  avatar: z.instanceof(FileList).optional(),
 }).refine(data => data.password === data.passwordConfirm, {
   message: "Passwords do not match.",
   path: ["passwordConfirm"],
@@ -41,7 +40,6 @@ const CreateProfile = () => {
 
   const onSubmit = async (data: ProfileFormValues) => {
     setIsSubmitting(true);
-    let avatar_path_in_storage: string | undefined = undefined;
 
     // 1. Sign up the new user with email and password
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -60,43 +58,11 @@ const CreateProfile = () => {
       return;
     }
     
-    const userId = signUpData.user?.id;
-
-    // 2. Handle avatar upload if one is provided
-    if (data.avatar && data.avatar.length > 0 && userId) {
-      const file = data.avatar[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        toast({ variant: "destructive", title: "Avatar Upload Failed", description: uploadError.message });
-        setIsSubmitting(false);
-        return;
-      }
-      avatar_path_in_storage = filePath;
-
-      // 3. Update the user's profile with the avatar URL
-      const { error: updateProfileError } = await supabase
-        .from('users_profile')
-        .update({ avatar_url: avatar_path_in_storage })
-        .eq('id', userId);
-
-      if (updateProfileError) {
-        toast({ variant: "destructive", title: "Profile Update Failed", description: updateProfileError.message });
-        setIsSubmitting(false);
-        return;
-      }
-    }
-
     if (signUpData.user) {
         toast({ title: "Profile Created!", description: "Please check your email to verify your account. You can now log in." });
         navigate('/'); // Navigate to login page
     }
+    setIsSubmitting(false);
   };
 
   return (
@@ -157,19 +123,6 @@ const CreateProfile = () => {
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="avatar"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Profile Picture</FormLabel>
-                    <FormControl>
-                      <Input type="file" accept="image/png, image/jpeg" {...form.register("avatar")} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
