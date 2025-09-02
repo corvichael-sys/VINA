@@ -83,8 +83,10 @@ export const AppLayout = () => {
           </div>
         </header>
         <MobileNav />
-        <main className="flex flex-1 flex-col gap-4 p-4 sm:p-6 min-w-0"> {/* Added min-w-0 here */}
-          <Outlet />
+        <main className="flex-1 p-4 sm:p-6 min-w-0 overflow-y-auto">
+          <div className="w-full max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
