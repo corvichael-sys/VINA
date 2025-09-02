@@ -26,19 +26,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { useSession } from "@/context/SessionContext";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusCircle, CalendarIcon } from "lucide-react";
 import { format, addMonths } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Debt } from "@/types/debt";
 
 const planFormSchema = z.object({
   name: z.string().min(1, "Plan name is required."),
   total_amount: z.coerce.number().min(1, "Total amount must be greater than 0."),
   number_of_payments: z.coerce.number().min(1, "Select the number of payments."),
   final_due_date: z.date({ required_error: "A final due date is required." }),
+  debt_id: z.string().optional().nullable(), // New optional field for linking to a debt
 });
 
 type PlanFormValues = z.infer<typeof planFormSchema>;
+
+const fetchDebts = async (userId: string) => {
+  const { data, error } = await supabase.from("debts").select("id, name").eq("user_id", userId).eq("status", "active");
+  if (error) throw error;
+  return data as Pick<Debt, "id" | "name">[];
+};
 
 export const AddPaymentPlanDialog = () => {
   const { user } = useSession();
@@ -49,6 +57,15 @@ export const AddPaymentPlanDialog = () => {
 
   const form = useForm<PlanFormValues>({
     resolver: zodResolver(planFormSchema),
+    defaultValues: {
+      debt_id: "", // Initialize debt_id
+    },
+  });
+
+  const { data: debts, isLoading: areDebtsLoading } = useQuery({
+    queryKey: ["debts", user?.id],
+    queryFn: () => fetchDebts(user!.id),
+    enabled: !!user,
   });
 
   const onSubmit = async (data: PlanFormValues) => {
@@ -86,6 +103,7 @@ export const AddPaymentPlanDialog = () => {
         scheduled_date: format(paymentDate, 'yyyy-MM-dd'),
         amount_planned: paymentAmount,
         paid: false,
+        debt_id: data.debt_id || null, // Pass the selected debt_id
       };
     });
 
@@ -163,6 +181,27 @@ export const AddPaymentPlanDialog = () => {
                     <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
                   </PopoverContent>
                 </Popover>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="debt_id" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Link to Debt (Optional)</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={areDebtsLoading ? "Loading debts..." : "Select a debt"} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">No Debt</SelectItem>
+                    {debts?.map((debt) => (
+                      <SelectItem key={debt.id} value={debt.id}>
+                        {debt.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )} />
