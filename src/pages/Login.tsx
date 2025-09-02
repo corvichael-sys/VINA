@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Link } from "react-router-dom";
-import { LogIn } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -48,8 +47,9 @@ const Login = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <LogIn className="mx-auto h-10 w-10 text-primary mb-4" />
-          <CardTitle>Welcome Back</CardTitle>
+          {/* Replaced LogIn icon with a text-based logo */}
+          <div className="text-primary text-4xl font-bold mb-4">VINA</div>
+          <CardTitle>Welcome to VINA</CardTitle>
           <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
         <CardContent>
