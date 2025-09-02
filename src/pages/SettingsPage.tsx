@@ -5,6 +5,7 @@ import { DeleteAllTransactionsDialog } from "@/components/settings/DeleteAllTran
 import { UpdateProfileForm } from "@/components/settings/UpdateProfileForm";
 import { UpdatePasswordForm } from "@/components/settings/UpdatePasswordForm";
 import { ThemeSwitcher } from "@/components/settings/ThemeSwitcher";
+import { AccentColorSwitcher } from "@/components/settings/AccentColorSwitcher";
 
 const SettingsPage = () => {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -20,6 +21,7 @@ const SettingsPage = () => {
         <UpdateProfileForm />
         <UpdatePasswordForm />
         <ThemeSwitcher />
+        <AccentColorSwitcher />
 
         <Card className="border-destructive">
           <CardHeader>

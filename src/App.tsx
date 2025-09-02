@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SessionContextProvider, useSession } from "./context/SessionContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/providers/ThemeProvider"; // Changed to use path alias
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import { AccentColorProvider } from "./providers/AccentColorProvider";
 
 import { AppLayout } from "./components/layout/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
@@ -21,14 +22,16 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <QueryClientProvider client={queryClient}>
-        <SessionContextProvider>
-          <BrowserRouter>
-            <AppRoutes />
-            <Toaster />
-          </BrowserRouter>
-        </SessionContextProvider>
-      </QueryClientProvider>
+      <AccentColorProvider>
+        <QueryClientProvider client={queryClient}>
+          <SessionContextProvider>
+            <BrowserRouter>
+              <AppRoutes />
+              <Toaster />
+            </BrowserRouter>
+          </SessionContextProvider>
+        </QueryClientProvider>
+      </AccentColorProvider>
     </ThemeProvider>
   );
 }
