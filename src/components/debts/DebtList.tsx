@@ -1,6 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@/context/SessionContext";
 import { Debt } from "@/types/debt";
 import {
   Table,
@@ -27,22 +24,6 @@ import {
 import { EditDebtDialog } from "./EditDebtDialog";
 import { DeleteDebtDialog } from "./DeleteDebtDialog";
 
-const fetchDebts = async (userId: string | undefined): Promise<Debt[]> => {
-  if (!userId) return [];
-
-  const { data, error } = await supabase
-    .from("debts")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data as Debt[];
-};
-
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -61,14 +42,13 @@ const getSeverityBadgeVariant = (severity: Debt['severity']) => {
   }
 };
 
-export const DebtList = () => {
-  const { user } = useSession();
-  const { data: debts, isLoading, isError } = useQuery({
-    queryKey: ["debts", user?.id],
-    queryFn: () => fetchDebts(user?.id),
-    enabled: !!user,
-  });
+interface DebtListProps {
+  debts: Debt[] | undefined;
+  isLoading: boolean;
+  isError: boolean;
+}
 
+export const DebtList = ({ debts, isLoading, isError }: DebtListProps) => {
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
@@ -85,11 +65,18 @@ export const DebtList = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Debts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -99,16 +86,23 @@ export const DebtList = () => {
 
   if (!debts || debts.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-semibold">No Debts Yet</h3>
-        <p className="text-muted-foreground">Click "Add New Debt" to get started.</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Debts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12">
+            <h3 className="text-lg font-semibold">No Debts Yet</h3>
+            <p className="text-muted-foreground">Click "Add New Debt" to get started.</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <>
-      <Card>
+      <Card className="h-full">
         <CardHeader>
           <CardTitle>Your Debts</CardTitle>
         </CardHeader>
