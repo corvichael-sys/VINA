@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,6 +15,7 @@ type SessionContextType = {
   profile: Profile | null;
   isLoading: boolean;
   logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>; // Added refreshProfile
 };
 
 // Create the context
@@ -27,7 +28,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data: profileData, error: profileError } = await supabase
       .from('users_profile')
       .select('username, avatar_url')
@@ -40,7 +41,14 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
     }
 
     return profileData;
-  };
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      const fetchedProfile = await fetchProfile(user.id);
+      setProfile(fetchedProfile);
+    }
+  }, [user, fetchProfile]);
 
   useEffect(() => {
     const setData = async () => {
@@ -77,7 +85,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchProfile]);
 
   const logout = async () => {
     await supabase.auth.signOut();
@@ -89,6 +97,7 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
     profile,
     isLoading,
     logout,
+    refreshProfile, // Added to context value
   };
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

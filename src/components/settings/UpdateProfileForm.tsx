@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useSession } from "@/context/SessionContext";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query"; // Removed useQueryClient
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,8 +21,8 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export const UpdateProfileForm = () => {
-  const { profile, user } = useSession();
-  const queryClient = useQueryClient();
+  const { profile, user, refreshProfile } = useSession();
+  // const queryClient = useQueryClient(); // Removed this line
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
 
@@ -50,7 +50,7 @@ export const UpdateProfileForm = () => {
       return values;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["session"] });
+      refreshProfile();
       toast({
         title: "Profile updated!",
         description: `Your username has been changed to ${data.username}.`,
@@ -111,7 +111,7 @@ export const UpdateProfileForm = () => {
         throw updateError;
       }
       
-      queryClient.invalidateQueries({ queryKey: ["session"] });
+      refreshProfile();
 
       toast({
         title: 'Avatar updated!',
