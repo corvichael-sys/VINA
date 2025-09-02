@@ -15,6 +15,7 @@ import PaychecksPage from "./pages/PaychecksPage";
 import BudgetsPage from "./pages/BudgetsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import PaymentPlansPage from "./pages/PaymentPlansPage";
+import SettingsPage from "./pages/SettingsPage"; // Import the new SettingsPage
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const AppRoutes = () => {
             <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/payment-plans" element={<PaymentPlansPage />} />
+            <Route path="/settings" element={<SettingsPage />} /> {/* New Settings route */}
             <Route path="*" element={<NotFound />} />
           </Route>
         )}
