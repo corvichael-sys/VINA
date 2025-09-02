@@ -1,9 +1,4 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  /* Removed padding: 2rem; */
-  /* Removed text-align: center; */
-}
+/* #root styles removed to allow components to control layout responsively */
 
 .logo {
   height: 6em;
