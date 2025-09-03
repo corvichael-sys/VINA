@@ -28,10 +28,8 @@ function App() {
       <AccentColorProvider>
         <QueryClientProvider client={queryClient}>
           <SessionContextProvider>
-            <BrowserRouter>
-              <AppRoutes />
-              <Toaster />
-            </BrowserRouter>
+            <AppContent /> {/* Render AppContent which contains BrowserRouter and AppRoutes */}
+            <Toaster />
           </SessionContextProvider>
         </QueryClientProvider>
       </AccentColorProvider>
@@ -39,7 +37,7 @@ function App() {
   );
 }
 
-const AppRoutes = () => {
+const AppContent = () => {
   const { isLoading } = useSession();
 
   if (isLoading) {
@@ -50,6 +48,14 @@ const AppRoutes = () => {
     );
   }
 
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+};
+
+const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
