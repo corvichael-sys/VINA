@@ -1,7 +1,3 @@
-import {
-  Avatar,
-  AvatarFallback,
-} from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -15,14 +11,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSession } from "@/context/SessionContext"
 import { Link } from "react-router-dom"
+import { User } from "lucide-react" // Import the User icon
 
 export function UserNav() {
   const { profile, logout } = useSession()
-
-  const getInitials = (name: string) => {
-    if (!name) return ""
-    return name.charAt(0).toUpperCase()
-  }
 
   // Show a skeleton loader while the profile is being fetched
   if (!profile) {
@@ -33,9 +25,7 @@ export function UserNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
-          </Avatar>
+          <User className="h-5 w-5" /> {/* Replaced Avatar with User icon */}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
