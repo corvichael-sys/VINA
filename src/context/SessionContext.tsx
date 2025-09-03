@@ -58,15 +58,19 @@ export const SessionContextProvider = ({ children }: { children: React.ReactNode
         setIsLoading(false);
         return;
       }
+      
+      // Set session and stop the main loading state immediately
       setSession(session);
       setUser(session?.user ?? null);
+      setIsLoading(false);
+
+      // Fetch profile in the background without blocking the UI
       if (session?.user) {
         const fetchedProfile = await fetchProfile(session.user.id);
         setProfile(fetchedProfile);
       } else {
         setProfile(null);
       }
-      setIsLoading(false);
     };
 
     setData();

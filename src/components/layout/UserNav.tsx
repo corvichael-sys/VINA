@@ -1,58 +1,62 @@
 import {
+  Avatar,
+  AvatarFallback,
+} from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { useSession } from "@/context/SessionContext";
-import { useNavigate } from "react-router-dom";
-import { mainNavItems, settingsNavItem, NavItem } from "@/config/nav";
-import { ChevronDown, LogOut } from "lucide-react";
+} from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useSession } from "@/context/SessionContext"
+import { Link } from "react-router-dom"
 
-export const UserNav = () => {
-  const { profile, logout } = useSession();
-  const navigate = useNavigate();
+export function UserNav() {
+  const { profile, logout } = useSession()
 
-  const handleNavigate = (href: string) => {
-    navigate(href);
-  };
+  const getInitials = (name: string) => {
+    if (!name) return ""
+    return name.charAt(0).toUpperCase()
+  }
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  // Show a skeleton loader while the profile is being fetched
+  if (!profile) {
+    return <Skeleton className="h-8 w-8 rounded-full" />
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost">
-          <span>{profile?.username || 'Menu'}</span>
-          <ChevronDown className="ml-2 h-4 w-4" />
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
+          </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{profile.username}</p>
+          </div>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {mainNavItems.map((item: NavItem) => (
-          <DropdownMenuItem key={item.href} onClick={() => handleNavigate(item.href)}>
-            <item.icon className="mr-2 h-4 w-4" />
-            <span>{item.label}</span>
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <Link to="/settings">
+            <DropdownMenuItem>
+              Settings
+            </DropdownMenuItem>
+          </Link>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => handleNavigate(settingsNavItem.href)}>
-          <settingsNavItem.icon className="mr-2 h-4 w-4" />
-          <span>{settingsNavItem.label}</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Sign Out</span>
+        <DropdownMenuItem onClick={logout}>
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-};
+  )
+}
