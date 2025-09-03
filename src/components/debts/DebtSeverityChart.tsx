@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/chart";
 import { Debt } from "@/types/debt";
 import { Skeleton } from "../ui/skeleton";
-import { useMemo, useState, useEffect } from "react"; // Import useState and useEffect
+import { useMemo } from "react";
 
+// Define the props interface for DebtSeverityChart
 interface DebtSeverityChartProps {
   debts: Debt[] | undefined;
   isLoading: boolean;
@@ -28,54 +29,34 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Define the CSS variable names
-const CHART_COLOR_VAR_NAMES = [
-  "--chart-1",
-  "--chart-2",
-  "--chart-3",
-  "--chart-4",
-  "--chart-5",
+// Use a static list of theme-aware colors. This is safer and avoids CSP issues.
+const CHART_COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
 ];
 
 export const DebtSeverityChart = ({ debts, isLoading }: DebtSeverityChartProps) => {
-  const [actualChartColors, setActualChartColors] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const rootStyles = getComputedStyle(document.documentElement);
-      const colors = CHART_COLOR_VAR_NAMES.map(varName => {
-        const hslValues = rootStyles.getPropertyValue(varName).trim();
-        // Provide a fallback color if the variable is not found or empty
-        if (!hslValues) {
-          // Fallback to a default grey if CSS variable is not found
-          return 'hsl(0, 0%, 50%)'; 
-        }
-        return `hsl(${hslValues})`;
-      });
-      setActualChartColors(colors);
-    }
-  }, []); // Run once on mount to get computed styles
-
   const chartData = useMemo(() => {
-    // Ensure colors are loaded before processing chart data
-    if (!debts || actualChartColors.length === 0) return []; 
+    if (!debts) return [];
     return debts
-      .filter((debt) => debt.current_balance > 0)
-      .sort((a, b) => b.current_balance - a.current_balance)
-      .map((debt, index) => ({
+      .filter((debt: Debt) => debt.current_balance > 0)
+      .sort((a: Debt, b: Debt) => b.current_balance - a.current_balance)
+      .map((debt: Debt, index: number) => ({
         name: debt.name,
         value: debt.current_balance,
-        // Use the computed HSL values for the fill prop
-        fill: actualChartColors[index % actualChartColors.length], 
+        fill: CHART_COLORS[index % CHART_COLORS.length],
       }));
-  }, [debts, actualChartColors]); // Depend on actualChartColors
+  }, [debts]);
 
   const chartConfig = useMemo(() => {
     if (!chartData) return {};
-    return chartData.reduce((acc, entry) => {
+    return chartData.reduce((acc: ChartConfig, entry: { name: string; value: number; fill: string; }) => {
       acc[entry.name] = {
         label: entry.name,
-        color: entry.fill, // Use the actual fill color for ChartConfig
+        color: entry.fill,
       };
       return acc;
     }, {} as ChartConfig);
@@ -128,7 +109,7 @@ export const DebtSeverityChart = ({ debts, isLoading }: DebtSeverityChartProps) 
               innerRadius={60}
               strokeWidth={2}
             >
-              {chartData.map((entry) => (
+              {chartData.map((entry: { name: string; value: number; fill: string; }) => (
                 <Cell key={`cell-${entry.name}`} fill={entry.fill} stroke={entry.fill} />
               ))}
             </Pie>

@@ -1,6 +1,6 @@
 import { AddDebtForm } from "@/components/debts/AddDebtForm";
 import { DebtList } from "@/components/debts/DebtList";
-// import { DebtSeverityChart } from "@/components/debts/DebtSeverityChart";
+import { DebtSeverityChart } from "@/components/debts/DebtSeverityChart";
 import { DebtSummary } from "@/components/debts/DebtSummary";
 import { useSession } from "@/context/SessionContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -220,7 +220,7 @@ const DashboardPage = () => {
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          {/* <DebtSeverityChart debts={debts} isLoading={isLoadingDebts} /> */}
+          <DebtSeverityChart debts={debts} isLoading={isLoadingDebts} />
         </div>
         <div className="lg:col-span-3">
           <DebtList debts={debts} isLoading={isLoadingDebts} isError={isErrorDebts} />
