@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SessionContextProvider, useSession } from "./context/SessionContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/providers/ThemeProvider";
+import { ThemeProvider } from "./providers/ThemeProvider";
 import { AccentColorProvider } from "./providers/AccentColorProvider";
 
 import { AppLayout } from "./components/layout/AppLayout";
@@ -16,6 +16,9 @@ import SettingsPage from "./pages/SettingsPage";
 import Login from "./pages/Login";
 import CreateProfile from "./pages/CreateProfile";
 import NotFound from "./pages/NotFound";
+
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import PublicRoute from "./components/auth/PublicRoute";
 
 const queryClient = new QueryClient();
 
@@ -37,42 +40,41 @@ function App() {
 }
 
 const AppRoutes = () => {
-  const { session, isLoading } = useSession();
+  const { isLoading } = useSession();
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p>Loading...</p>
+        <p>Loading application...</p>
       </div>
     );
   }
 
   return (
     <Routes>
-      {session ? (
-        <>
-          <Route path="/" element={<AppLayout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="paychecks" element={<PaychecksPage />} />
-            <Route path="budgets" element={<BudgetsPage />} />
-            <Route path="transactions" element={<TransactionsPage />} />
-            <Route path="payment-plans" element={<PaymentPlansPage />} />
-            <Route path="payment-plans/:planId" element={<PaymentPlanDetailPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-          {/* Redirect authenticated users away from login/signup */}
-          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/create-profile" element={<Navigate to="/dashboard" replace />} />
-        </>
-      ) : (
-        <>
-          <Route path="/login" element={<Login />} />
-          <Route path="/create-profile" element={<CreateProfile />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </>
-      )}
+      {/* Public Routes */}
+      <Route element={<PublicRoute />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/create-profile" element={<CreateProfile />} />
+        {/* Redirect any other unmatched public route to login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Route>
+
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<AppLayout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="paychecks" element={<PaychecksPage />} />
+          <Route path="budgets" element={<BudgetsPage />} />
+          <Route path="transactions" element={<TransactionsPage />} />
+          <Route path="payment-plans" element={<PaymentPlansPage />} />
+          <Route path="payment-plans/:planId" element={<PaymentPlanDetailPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          {/* Catch-all for protected routes that don't match */}
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Route>
     </Routes>
   );
 };
