@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SessionContextProvider, useSession } from "./context/SessionContext";
+import { SessionContextProvider } from "./context/SessionContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "./providers/ThemeProvider";
@@ -28,7 +28,7 @@ function App() {
       <AccentColorProvider>
         <QueryClientProvider client={queryClient}>
           <SessionContextProvider>
-            <AppContent /> {/* Render AppContent which contains BrowserRouter and AppRoutes */}
+            <AppContent />
             <Toaster />
           </SessionContextProvider>
         </QueryClientProvider>
@@ -38,16 +38,8 @@ function App() {
 }
 
 const AppContent = () => {
-  const { isLoading } = useSession();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p>Loading application...</p>
-      </div>
-    );
-  }
-
+  // Removed the isLoading check here.
+  // ProtectedRoute and PublicRoute will now handle their own loading states.
   return (
     <BrowserRouter>
       <AppRoutes />
